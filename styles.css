@@ -467,3 +467,9 @@ textarea.input { height: 90px; padding: 12px 14px; resize: none; }
 .fx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
 .fx-grid label { display: flex; align-items: center; gap: 6px; }
 .fx-grid .input { height: 42px; padding: 0 10px; }
+/* ---------- Historia ---------- */
+.hscroll.hist { align-items: stretch; }
+.hcard { flex: 0 0 230px; scroll-snap-align: start; background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 14px; box-shadow: var(--shadow-sm); }
+.hcard .e { font-size: 28px; display: block; margin-bottom: 6px; }
+.hcard b { font-family: var(--font-display); font-size: 16px; display: block; margin-bottom: 4px; }
+.hcard p { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.4; }

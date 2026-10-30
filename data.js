@@ -70,6 +70,7 @@ window.DAYS = [
     items: [
       { id: 'a9', time: '09:00', title: 'Ruta en quad al Salto El Limón', kind: 'adventure', note: 'Opcional · 50 $/quad/día', cost: 50, cur: 'USD', optional: true },
       { id: 'a10', time: '16:00', title: 'Tarde en Playa Bonita', kind: 'beach' },
+      { id: 'a10b', time: 'Todo el día', title: '🇩🇴 Día de la Restauración (fiesta nacional)', kind: 'party', note: 'Se celebra la guerra de 1863 contra España. Puede haber desfiles, banderas y bancos cerrados.' },
     ] },
   { date: '2027-08-17', zone: 'ltr', title: 'Día en Playa Ballenas', emoji: '🐋',
     items: [
@@ -214,6 +215,7 @@ window.PLACES = [
   { id: 'y4', lat: 45.5038, lon: -73.5874, img: 'mtl_royal', zone: 'yul', cat: 'excursion', name: 'Mont-Royal · Belvédère Kondiaronk', emoji: '🌄', desc: 'El mirador clásico sobre los rascacielos. Al atardecer de agosto, vistas de postal (se sube en coche/taxi casi hasta arriba).', q: 'Belvédère Kondiaronk', kids: true },
   { id: 'y5', lat: 45.5226, lon: -73.6026, img: 'mtl_bagel', zone: 'yul', cat: 'comida', name: 'St-Viateur Bagel', emoji: '🥯', desc: 'Los bagels de Montreal, hechos a mano en horno de leña. El local original abre 24 h: ideal para llevar al hotel.', q: 'St-Viateur Bagel 263 Saint-Viateur Ouest', kids: true },
   { id: 'y6', lat: 45.5166, lon: -73.5779, zone: 'yul', cat: 'comida', name: "Schwartz's Deli", emoji: '🥪', desc: 'Sándwich de smoked meat, institución desde 1928. Suele haber cola.', q: "Schwartz's Deli Montreal", kids: true },
+  { id: 'y8', lat: 45.5579, lon: -73.5515, img: 'mtl_olymp', zone: 'yul', cat: 'excursion', name: 'Parc olympique', emoji: '🏟️', desc: 'Estadio de los Juegos Olímpicos de 1976, con la torre inclinada más alta del mundo. Al lado, el Biodôme y el Jardín Botánico.', q: 'Parc olympique de Montréal', kids: true },
   { id: 'y7', lat: 45.5363, lon: -73.6147, img: 'mtl_talon', zone: 'yul', cat: 'compras', name: 'Marché Jean-Talon', emoji: '🍓', desc: 'Mercado al aire libre con fruta de temporada de Quebec. Cierra por la tarde: difícil con nuestros horarios.', q: 'Marché Jean-Talon', kids: true },
 ];
 
@@ -293,6 +295,7 @@ window.ICONIC = [
   { id: 'i9', name: 'Cabarete', emoji: '🪁', img: 'cabarete', lat: 19.750, lon: -70.410, desc: 'Capital mundial del kitesurf, con ambiente surfero y bares en la arena.', how: '≈ 3 h desde Las Terrenas.', far: true },
   { id: 'i10', name: 'El Morro · Montecristi', emoji: '🗿', img: 'morro', lat: 19.870, lon: -71.660, desc: 'Meseta gigante sobre el mar en el extremo noroeste, junto a los Cayos Siete Hermanos.', how: 'Muy lejos (≈ 6 h). Para otro viaje.', far: true },
   { id: 'i11', name: 'Ballenas jorobadas · Bahía de Samaná', emoji: '🐋', img: 'whale', lat: 19.180, lon: -69.330, desc: 'Miles de jorobadas vienen a criar de enero a marzo. En agosto no hay, pero la bahía es preciosa.', how: '≈ 1 h desde Las Terrenas (solo en temporada).' },
+  { id: 'i13', name: 'Basílica de Higüey', emoji: '⛪', img: 'higuey', lat: 18.6157, lon: -68.7076, desc: 'Santuario de la Virgen de la Altagracia, patrona del país (1971), con su enorme arco de hormigón. Cada 21 de enero llegan peregrinos de toda la isla.', how: '≈ 45 min desde el Hard Rock. Excursión de medio día.' },
   { id: 'i12', name: 'Mirador de Samaná', emoji: '🌄', img: 'samana', lat: 19.200, lon: -69.370, desc: 'Vista de la bahía de Samaná desde lo alto, camino de Las Terrenas.', how: 'De paso en el transfer.' },
 ];
 
@@ -311,6 +314,9 @@ window.LOCALS = [
   { zone: 'ltr', cat: 'fiesta', name: 'Sunset Bar Restaurant', emoji: '🌅', desc: 'Bar de atardecer con marisco y música en vivo algunas noches (4,6/5).', kids: true, p: '$$', q: 'Sunset Bar Restaurant Las Terrenas' },
   { zone: 'ltr', cat: 'fiesta', name: 'Mosquito · Playa Bonita', emoji: '🎧', desc: 'Beach bar con DJ al atardecer y olas de surf.', kids: true, p: '$$', q: 'Mosquito Boutique Hotel Playa Bonita Las Terrenas' },
   { zone: 'ltr', cat: 'compras', name: 'Mercado de Plaza Rosada', emoji: '🥭', desc: 'Mercado de productores el sábado (¡el 14 de agosto es sábado!): fruta, cacao, productos locales. Al lado, cajero Scotiabank.', kids: true, p: '$', q: 'Plaza Rosada Las Terrenas' },
+  { zone: 'ltr', cat: 'compras', name: 'El Arte de Las Terrenas', emoji: '🎨', desc: 'Mercado cubierto de artistas y artesanos locales en la calle Duarte (9:00–18:00). El sitio para recuerdos hechos allí.', kids: true, p: '$$', q: 'El Arte de Las Terrenas Calle Duarte' },
+  { zone: 'ltr', cat: 'compras', name: 'La Plaza · Av. Luis Ginebra', emoji: '🛒', desc: 'Plaza comercial con supermercado: ideal para la compra grande del chef el día 15.', kids: true, p: '$', q: 'La Plaza Avenida Luis Ginebra Las Terrenas' },
+  { zone: 'ltr', cat: 'compras', name: 'Plaza El Paseo', emoji: '💊', desc: 'Pequeño centro en mitad del pueblo: farmacia, cajero, agencia de excursiones y buena tienda de puros.', kids: true, p: '$$', q: 'Plaza El Paseo Las Terrenas' },
   { zone: 'ltr', cat: 'excursion', name: 'Flora Tours', emoji: '🧭', desc: 'Agencia local: Frontón + Rincón (≈ 100 $), Los Haitises (≈ 90 $), El Limón (≈ 55 $) y catamarán privado para el grupo.', kids: true, p: '$$', q: 'Flora Tours Las Terrenas' },
   { zone: 'ltr', cat: 'excursion', name: 'Peninsula Tours', emoji: '🚤', desc: 'Operador local muy conocido: Los Haitises desde ≈ 59 $, El Limón a caballo, Playa Frontón.', kids: true, p: '$$', q: 'Peninsula Tours Las Terrenas' },
   { zone: 'puj', cat: 'comida', name: 'Paradores de Playa Macao', emoji: '🐠', desc: 'Pescado entero frito con tostones (600–1.200 RD$). Solo efectivo; preguntad el total antes. Ojo a las corrientes.', kids: true, p: '$$', q: 'Playa Macao' },
@@ -318,6 +324,10 @@ window.LOCALS = [
   { zone: 'puj', cat: 'comida', name: 'Cortecito Bar Restaurante', emoji: '🍤', desc: 'Marisco y comida dominicana en la playa, más económico.', kids: true, p: '$$', q: 'Cortecito Bar Restaurante Bavaro' },
   { zone: 'puj', cat: 'comida', name: 'La Bruja Chupadora BBQ', emoji: '🔥', desc: 'Parrilla popular entre locales en Bávaro.', kids: true, p: '$$', q: 'La Bruja Chupadora Bavaro' },
   { zone: 'puj', cat: 'excursion', name: 'Ojos Indígenas', emoji: '💧', desc: 'Reserva con 11–12 lagunas de agua dulce donde bañarse. Desde fuera del resort, solo con tour.', kids: true, p: '$$', q: 'Indigenous Eyes Ecological Park Punta Cana' },
+  { zone: 'puj', cat: 'compras', name: 'Palma Real Shopping Village', emoji: '🛍️', desc: 'Centro comercial al aire libre en Bávaro, a unos 15 min en taxi del Hard Rock: tiendas, heladerías y restaurantes con aire acondicionado.', kids: true, p: '$$', q: 'Palma Real Shopping Village Bavaro' },
+  { zone: 'puj', cat: 'compras', name: 'Plaza Bávaro (mercadillo)', emoji: '🧺', desc: 'Más de 100 puestos junto a la playa: ron, café, cacao, puros, conchas y larimar. Toca regatear.', kids: true, p: '$', q: 'Plaza Bavaro Punta Cana' },
+  { zone: 'puj', cat: 'compras', name: 'Mercadillo de El Cortecito', emoji: '🪆', desc: 'Puestos de colores en el paseo de la playa: muñecas Limé sin rostro, larimar y bisutería. Aceptan pesos, dólares y a menudo tarjeta.', kids: true, p: '$', q: 'El Cortecito Bavaro mercado artesania' },
+  { zone: 'puj', cat: 'compras', name: 'Plaza Bibijagua', emoji: '🍶', desc: 'Mercadillo de playa junto al Barceló Bávaro: recuerdos, ron, café y mamajuana casera para probar (adultos).', kids: true, p: '$', q: 'Plaza Bibijagua Bavaro' },
   { zone: 'puj', cat: 'compras', name: 'Mundo Auténtico', emoji: '💎', desc: 'Precio fijo (sin regateo): larimar, ámbar, cacao, café, ron y mamajuana. Pedid certificado del larimar.', kids: true, p: '$$', q: 'Mundo Auténtico Bávaro' },
   { zone: 'yul', cat: 'comida', name: 'Poulet Rouge · aeropuerto YUL', emoji: '🍟', desc: 'Pollo a la brasa y poutine antes del control (abierto en 2025, 4,6/5). Perfecto para la noche del 13.', kids: true, p: '$', q: 'Poulet Rouge Aéroport Montréal-Trudeau' },
 ];
@@ -334,6 +344,7 @@ window.TIPS = [
   ['🌀', 'Agosto', '30–33 °C y chubascos cortos. Es temporada de huracanes: seguro de viaje que lo cubra.'],
   ['🔒', 'Seguridad', 'Pocos objetos de valor en la playa, nada a la vista en el coche y taxi de noche.'],
   ['🤝', 'Regateo', 'Normal en mercados y con vendedores de playa (empezad un 30–40 % por debajo). En tiendas de precio fijo, no.'],
+  ['🛍️', 'Qué comprar', 'Larimar, ámbar, muñecas Limé sin rostro, cacao y chocolate, café Santo Domingo, ron dominicano (Brugal, Barceló), puros y mamajuana. Si lleváis botellas en la maleta, envolvedlas bien.'],
   ['🗣️', 'Frases', '"¿Cuánto e\' todo?" · "¿Tiene pescado con coco?" · "Un chin" (un poquito) · "¿Qué lo que?"'],
 ];
 
@@ -346,3 +357,33 @@ window.MTL_PLAN = [
   ['⏰', 'Sáb 14 · 06:30', 'Arriba temprano: vuelo TS0398 a las 09:20.'],
   ['🔁', 'Mié 25', 'Vuelta: solo 4 h 10 min de escala. No da para salir de la terminal.'],
 ];
+
+// Historia y curiosidades (para Explora y Coco).
+window.HISTORY = {
+  rd: [
+    ['🌺', 'Los taínos', 'Eran el pueblo de la isla antes de 1492 y la llamaban Quisqueya o Ayiti. De su idioma vienen hamaca, barbacoa, canoa, tabaco y huracán.'],
+    ['⛵', '1492: llega Colón', 'Colón llegó a la isla en diciembre de 1492 y la bautizó La Española. Fue la primera base española en América.'],
+    ['🏛️', 'Santo Domingo, la primera', 'Fundada en 1496–1498, es la ciudad europea más antigua de América. Tiene la primera catedral (Catedral Primada) y la primera universidad del continente. Su Zona Colonial es Patrimonio de la Humanidad (UNESCO, 1990).'],
+    ['🇩🇴', '27 de febrero de 1844', 'Independencia, tras 22 años bajo dominio haitiano. Los padres de la patria son Duarte, Sánchez y Mella.'],
+    ['🎉', '16 de agosto: Restauración', 'Se celebra la guerra de 1863–1865 que devolvió la independencia frente a España. ¡Nos pilla allí! Es fiesta nacional (lunes 16).'],
+    ['🦋', 'Las hermanas Mirabal', 'Asesinadas en 1960 por oponerse a la dictadura de Trujillo (1930–1961). Por ellas, el 25 de noviembre es el Día Internacional contra la Violencia hacia la Mujer.'],
+    ['⛪', 'Samaná y "La Churcha"', 'En 1824 llegaron a Samaná afroamericanos libres de EE. UU. Sus descendientes aún conservan apellidos y tradiciones en inglés, y la iglesia metodista "La Churcha".'],
+    ['🥖', 'Las Terrenas, pueblo de pescadores', 'Era un pueblo de pescadores y agricultores hasta que en los 70–80 llegaron muchos franceses e italianos. Por eso hay tantas boulangeries y restaurantes franceses.'],
+    ['💎', 'El larimar', 'Piedra azul que solo existe en RD, en las montañas de Barahona. Se popularizó en 1974 y su nombre mezcla Larissa (la hija de quien la bautizó) y mar.'],
+    ['🎶', 'Merengue y bachata', 'Los dos son Patrimonio Cultural Inmaterial de la UNESCO: el merengue desde 2016 y la bachata desde 2019. La bachata se llamaba "música de amargue".'],
+    ['⚾', 'El béisbol', 'Es el deporte nacional. RD es uno de los países que más jugadores aporta a las Grandes Ligas de EE. UU.'],
+    ['📖', 'La bandera', 'Es la única bandera del mundo con una Biblia en el escudo, junto al lema "Dios, Patria, Libertad".'],
+  ],
+  ca: [
+    ['🍁', '1535: Hochelaga', 'Jacques Cartier llegó a la aldea iroquesa de Hochelaga y llamó "Mont Royal" a su montaña. De ahí viene el nombre de Montreal.'],
+    ['⚓', '1642: Ville-Marie', 'Paul de Chomedey de Maisonneuve fundó la misión de Ville-Marie, el origen de Montreal. El Vieux-Montréal conserva calles de esa época.'],
+    ['🇨🇦', '1 de julio de 1867', 'Nace Canadá con la Confederación. La bandera de la hoja de arce es de 1965.'],
+    ['🗣️', 'En francés', 'Quebec es francófono y Montreal es una de las mayores ciudades de habla francesa del mundo. Saludad con "Bonjour" (muchos contestan "Bonjour-Hi").'],
+    ['⛪', 'Notre-Dame', 'La basílica neogótica es de 1829. Céline Dion se casó allí en 1994.'],
+    ['🌍', 'Expo 67 y Juegos de 1976', 'La Exposición Universal de 1967 y los Juegos Olímpicos de 1976 transformaron la ciudad. Del 76 queda el estadio con su torre inclinada.'],
+    ['🚇', 'Ciudad subterránea', 'Más de 30 km de pasillos (el RÉSO) conectan metro, tiendas y oficinas para sobrevivir al invierno. En agosto, mejor arriba.'],
+    ['🍟', 'Poutine y bagels', 'La poutine (patatas, queso en grano y salsa gravy) nació en el Quebec rural en los años 50. Los bagels de Montreal se hierven en agua con miel y se hornean con leña.'],
+    ['✈️', 'El aeropuerto YUL', 'Lleva el nombre de Pierre Elliott Trudeau, primer ministro de Canadá (y padre de Justin Trudeau).'],
+    ['💵', 'Ojo: dólar canadiense', 'En Canadá se paga en dólares canadienses (CAD), no en dólares de EE. UU. La propina habitual es del 15–20 % y los impuestos se suman al pagar.'],
+  ],
+};

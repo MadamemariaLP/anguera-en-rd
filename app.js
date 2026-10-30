@@ -431,6 +431,9 @@ function explore() {
     <a class="btn sm ghost" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l.q)}" target="_blank" rel="noopener" aria-label="Abrir en Maps">📍</a></div>`).join('')}
     <p class="tiny">Revisad horarios y reseñas recientes en Maps antes de ir: en 2027 algo puede haber cambiado.</p></div>` : ''}
   ${!places.length && !locals.length ? '<div class="card muted">Nada por aquí con esos filtros.</div>' : ''}
+  <div class="sec-title"><h2>📜 Historia y curiosidades</h2></div>
+  <div class="seg">${[['rd', '🇩🇴 República Dominicana'], ['ca', '🍁 Canadá y Montreal']].map(x => `<button class="${(sub.hist || (isMtl() ? 'ca' : 'rd')) === x[0] ? 'on' : ''}" data-a="sub" data-k="hist" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>
+  <div class="hscroll hist" style="margin-top:10px">${window.HISTORY[sub.hist || (isMtl() ? 'ca' : 'rd')].map(h => `<div class="hcard"><span class="e">${h[0]}</span><b>${esc(h[1])}</b><p>${esc(h[2])}</p></div>`).join('')}</div>
   <div class="sec-title"><h2>💡 Tips de locales</h2></div>
   <div class="card fx">
     <div class="row"><span style="font-size:24px">💱</span><b class="grow">Cambio de moneda</b><span class="tiny">editable</span></div>
@@ -708,7 +711,7 @@ async function playFilm() {
 }
 
 // ---------- AI CONCIERGE (Coco) ----------
-const SUGGEST = ['¿Qué hacemos mañana?', '¿Dónde cenamos todos?', '¿Cuánto hemos gastado?', '¿Quién no ha pagado?', '¿Qué hacemos si llueve?', '¿Qué excursión recomiendas?', '¿Qué documentos faltan?', 'Pon música'];
+const SUGGEST = ['Cuéntame una curiosidad de RD', '¿Qué hacemos mañana?', '¿Dónde cenamos todos?', '¿Cuánto hemos gastado?', '¿Quién no ha pagado?', '¿Qué hacemos si llueve?', '¿Qué excursión recomiendas?', '¿Qué documentos faltan?', 'Pon música'];
 function ai() {
   const chat = S.chat.length ? S.chat : [{ role: 'bot', html: `¡Hola ${esc(me().name)}! Soy <b>Coco</b> 🥥, el concierge del club. Conozco el itinerario, los gastos, las votaciones y los gustos del grupo. Pregúntame lo que quieras.` }];
   return `<div class="page-head" style="text-align:center"><div class="coco">🥥</div><h1 style="font-size:28px">Coco · AI Concierge</h1><p>Sabe todo del viaje. Para preguntas abiertas, te paso a Claude con el contexto.</p></div>
@@ -781,6 +784,11 @@ function answer(raw) {
   if (has('musica', 'cancion', 'playlist', 'pon')) {
     const top = S.songs.slice().sort((a, b) => b.likes.length - a.likes.length).slice(0, 6);
     return top.length ? `🎶 Top del club:<ul>${top.map(s => `<li>${esc(s.title)} — ${esc(s.artist)}</li>`).join('')}</ul>Abre Gustos → Canciones para darle al play.` : 'Aún no hay canciones. Sube las tuyas en <b>Gustos → Canciones</b> y armo la playlist 🎧';
+  }
+  if (has('historia', 'curiosidad', 'dato', 'taino', 'colon', 'canada', 'quebec')) {
+    const set = has('canada', 'montreal', 'quebec') ? window.HISTORY.ca : window.HISTORY.rd;
+    const pick = [...set].sort(() => Math.random() - .5).slice(0, 3);
+    return `📜 Ahí van 3 curiosidades:<ul>${pick.map(h => `<li>${h[0]} <b>${esc(h[1])}:</b> ${esc(h[2])}</li>`).join('')}</ul>Más en Explora → Historia y curiosidades.`;
   }
   if (has('villa', 'casa')) return `🏡 La favorita es <b>Casa del Río</b> (3.000 €, chef y personal incluidos, frente al mar). Votación actual: ${window.POLLS[0].options.map((o, i) => `${esc(o.split(' ·')[0])}: ${Object.values(S.votes.p1 || {}).filter(v => v === i).length}`).join(' · ')}.`;
   if (has('presupuesto', 'familia', 'cuanto cuesta', 'precio')) return `Presupuesto: <b>${eur(window.BUDGET.total)}</b> el grupo.<ul>${fams().map(f => `<li>${f.emoji} ${esc(f.name)}: ~${eur(window.BUDGET.families[f.id])}</li>`).join('')}</ul>`;
