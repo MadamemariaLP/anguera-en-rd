@@ -709,7 +709,10 @@ function group() {
   if (t === 'board') return head + `<div class="card" style="margin-top:14px">
       <textarea class="input" id="post" data-draft="post" placeholder="Escribe un anuncio para el grupo…">${esc(S.drafts.post || '')}</textarea>
       <div class="row" style="margin-top:8px"><button class="btn sea sm" data-a="post">Publicar</button><div class="grow"></div>
-      ${S.whatsapp ? `<a class="btn sm ghost" href="${esc(S.whatsapp)}" target="_blank" rel="noopener">💬 WhatsApp</a>` : '<span class="tiny">Chat del día a día: WhatsApp (pega el enlace en Ajustes)</span>'}</div></div>
+      ${S.whatsapp ? `<a class="btn sm wa" href="${esc(S.whatsapp)}" target="_blank" rel="noopener">💬 Abrir el grupo de WhatsApp</a>` : ''}</div></div>
+    ${S.whatsapp ? '' : `<div class="card" style="margin-top:12px"><b>💬 Enlace del grupo de WhatsApp</b>
+      <p class="tiny" style="margin:4px 0 8px">En WhatsApp: nombre del grupo → "Invitar mediante enlace" → Copiar. Pégalo aquí y les aparece a todos.</p>
+      <div class="row" style="gap:8px"><input class="input grow" id="wa-in" inputmode="url" placeholder="https://chat.whatsapp.com/…"><button class="btn sea sm" data-a="save-wa">Guardar</button></div></div>`}
     <div class="stack" style="margin-top:12px">${S.posts.slice().sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || b.ts - a.ts).map(p => { const m = mem(p.by); return `<div class="post"><div class="av">${m.avatar}</div><div class="grow"><div class="tiny"><b>${esc(m.name)}</b> · ${new Date(p.ts).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} ${p.pin ? '📌' : ''}</div><div class="bubble">${esc(p.text)}</div></div></div>`; }).join('')}</div>`;
   return head + `<div class="stack" style="margin-top:14px">${fams().map(f => {
     const ms = members().filter(m => m.fam === f.id);
@@ -1295,6 +1298,11 @@ const A = {
   'save-profile': () => {
     S.names[S.me] = $('#s-n').value.trim() || undefined; S.avatars[S.me] = $('#s-av .on')?.textContent;
     save(); closeSheet(); render(); toast('Perfil guardado ✓');
+  },
+  'save-wa': () => {
+    const wa = $('#wa-in').value.trim();
+    if (!/^https:\/\/(chat\.whatsapp\.com|wa\.me)\//.test(wa)) return toast('Pega el enlace que empieza por https://chat.whatsapp.com/');
+    S.whatsapp = wa; save(); render(); toast('Enlace guardado para todo el grupo ✓');
   },
   'save-settings': () => {
     S.theme = $('#s-th .on').dataset.v; const wa = $('#s-wa').value.trim(); S.whatsapp = /^https:\/\/(chat\.whatsapp\.com|wa\.me)\//.test(wa) ? wa : '';
