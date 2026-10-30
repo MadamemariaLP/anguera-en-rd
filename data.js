@@ -18,7 +18,7 @@ window.TRIP = {
 window.SUPA = { url: 'https://pkncpyibekxhxrsvbzwk.supabase.co', key: 'sb_publishable_vgcIu-de5Dz2IqxQgije3A_oe7uGXjT' };
 
 window.FAMILIES = [
-  { id: 'f1', name: 'Chafardero', color: '#00B4C5', emoji: '🐬', room: '2A + 1 niño' },
+  { id: 'f1', name: 'Chafarderos', color: '#00B4C5', emoji: '🐬', room: '2A + 1 niño' },
   { id: 'f2', name: 'Posturitas', color: '#FF6B5B', emoji: '🦩', room: '2A + 3 niños' },
   { id: 'f3', name: 'Bertus', color: '#FFB627', emoji: '🥭', room: '2A + 3 niños' },
   { id: 'f4', name: 'Los Rockets', color: '#1DB980', emoji: '🌴', room: '2A + 1 niño' },
