@@ -1,5 +1,5 @@
 // Offline: app shell cache-first, resto red con caché de respaldo.
-const CACHE = 'rdtc-v11';
+const CACHE = 'rdtc-v12';
 const FILES = ['./', 'index.html', 'styles.css', 'data.js', 'map.js', 'app.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
@@ -10,7 +10,7 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
   const shell = url.origin === location.origin;
-  const fonts = /fonts\.(googleapis|gstatic)\.com/.test(url.host);
+  const fonts = /fonts\.(googleapis|gstatic)\.com|cdn\.jsdelivr\.net/.test(url.host);
   if (!shell && !fonts) return;
   e.respondWith(
     fetch(e.request).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return r; })

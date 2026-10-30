@@ -37,7 +37,7 @@ S.unlocked = true; // sin código de entrada (decisión de María, 30/10)
 if (S.mig < 2) { S.paid.pay1 = Object.fromEntries(window.FAMILIES.map(f => [f.id, true])); S.mig = 2; }
 S.pins = {}; // sin PIN (María, 30/10)
 if (S.mig < 3) { S.log = []; S.bingo = {}; S.missionDone = {}; S.challenges = {}; S.mig = 3; } // reinicio de puntos (María, 30/10)
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { toast('No se pudo guardar (almacenamiento lleno)'); } };
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { toast('No se pudo guardar (almacenamiento lleno)'); } if (typeof Sync !== 'undefined') Sync.schedule(); };
 
 // Photos live in IndexedDB (dataURLs pesan demasiado para localStorage).
 const idb = (() => {
@@ -51,7 +51,182 @@ const idb = (() => {
   return { get: k => tx('readonly', s => s.get(k)), put: (k, v) => tx('readwrite', s => s.put(v, k)), del: k => tx('readwrite', s => s.delete(k)) };
 })();
 const photoCache = {};
-const loadPhoto = async id => photoCache[id] || (photoCache[id] = await idb.get(id).catch(() => null));
+const loadPhoto = async id => {
+  if (photoCache[id]) return photoCache[id];
+  let src = await idb.get(id).catch(() => null);
+  if (!src) { src = await Sync.downloadPhoto(id); if (src) idb.put(id, src).catch(() => {}); }
+  return src && (photoCache[id] = src);
+};
+
+// ---------- Sync (Supabase) ----------
+// Lo del grupo (votos, gastos, fotos, gustos, puntos, nombres…) se comparte en la tabla `items`;
+// lo personal (perfil elegido, chat con Coco, borradores, tema) se queda en el móvil.
+// El servidor solo deja leer/escribir a móviles que han metido el PIN del grupo (ver ../supabase/setup.sql).
+const Sync = (() => {
+  const SEP = '\u0001', LIKES = { dish: 'dishes', song: 'songs', photo: 'photos' };
+  const canon = v => Array.isArray(v) ? `[${v.map(canon).join(',')}]`
+    : v && typeof v === 'object' ? `{${Object.keys(v).filter(k => v[k] !== undefined).sort().map(k => JSON.stringify(k) + ':' + canon(v[k])).join(',')}}` : JSON.stringify(v ?? null);
+  const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch { return d; } };
+  let client = null, uidSelf = null, status = 'off', flushT, applyT, channel, base = null; // base = cómo estaba S la última vez que lo sincronizamos
+  let synced = new Map(load('rdtc-synced', [])), queue = load('rdtc-queue', []), uploads = load('rdtc-uploads', []);
+  const persist = () => { try { localStorage.setItem('rdtc-synced', JSON.stringify([...synced])); localStorage.setItem('rdtc-queue', JSON.stringify(queue)); localStorage.setItem('rdtc-uploads', JSON.stringify(uploads)); } catch {} };
+  const setStatus = s => { if (status === s) return; status = s; document.querySelectorAll('.sync-dot').forEach(d => (d.className = 'sync-dot ' + s)); };
+
+  function toItems(st) {
+    const m = new Map(), put = (k, id, d) => m.set(k + SEP + id, canon(d || {}));
+    for (const [p, v] of Object.entries(st.votes)) for (const [w, o] of Object.entries(v || {})) if (o != null) put('vote', p + '|' + w, { o });
+    for (const [a, l] of Object.entries(st.signups)) (l || []).forEach(w => put('signup', a + '|' + w));
+    for (const [w, d] of Object.entries(st.docs)) for (const [k, on] of Object.entries(d || {})) if (on) put('doc', w + '|' + k);
+    for (const [p, f] of Object.entries(st.paid)) for (const [k, on] of Object.entries(f || {})) if (on) put('paid', p + '|' + k);
+    for (const [p, l] of Object.entries(st.wish)) (l || []).forEach(w => put('wish', p + '|' + w));
+    st.expenses.forEach(e => put('expense', e.id, e));
+    st.posts.forEach(p => put('post', p.id, p));
+    st.log.forEach(l => l.key && put('log', l.key, l));
+    for (const [w, c] of Object.entries(st.bingo)) put('bingo', w, { c });
+    for (const [w, on] of Object.entries(st.missionDone)) if (on) put('mission', w);
+    for (const [c, w] of Object.entries(st.challenges)) if (w) put('challenge', c, { m: w });
+    for (const [type, field] of Object.entries(LIKES)) st[field].forEach(x => { const { likes, ...rest } = x; put(type, x.id, rest); (likes || []).forEach(w => put('like', type + ':' + x.id + '|' + w)); });
+    for (const [w, v] of Object.entries(st.names)) if (v) put('name', w, { v });
+    for (const [w, v] of Object.entries(st.avatars)) if (v) put('avatar', w, { v });
+    for (const [f, v] of Object.entries(st.famNames)) if (v) put('famname', f, { v });
+    st.extra.forEach(x => put('member', x.id, x));
+    st.removed.forEach(id => put('removed', id));
+    if (st.whatsapp) put('setting', 'whatsapp', { v: st.whatsapp });
+    put('setting', 'fx', st.fx);
+    return m;
+  }
+  function apply() {
+    const st = { votes: {}, signups: {}, docs: {}, paid: {}, wish: {}, expenses: [], posts: [], log: [], bingo: {}, missionDone: {}, challenges: {},
+      dishes: [], songs: [], photos: [], names: {}, avatars: {}, famNames: {}, extra: [], removed: [], whatsapp: '', fx: { ...T.fx } };
+    const likes = [];
+    for (const [k, raw] of synced) {
+      const i = k.indexOf(SEP), kind = k.slice(0, i), id = k.slice(i + 1), d = JSON.parse(raw), [a, b] = id.split('|');
+      switch (kind) {
+        case 'vote': (st.votes[a] = st.votes[a] || {})[b] = d.o; break;
+        case 'signup': (st.signups[a] = st.signups[a] || []).push(b); break;
+        case 'doc': (st.docs[a] = st.docs[a] || {})[b] = true; break;
+        case 'paid': (st.paid[a] = st.paid[a] || {})[b] = true; break;
+        case 'wish': (st.wish[a] = st.wish[a] || []).push(b); break;
+        case 'expense': st.expenses.push(d); break;
+        case 'post': st.posts.push(d); break;
+        case 'log': st.log.push(d); break;
+        case 'bingo': st.bingo[id] = d.c || []; break;
+        case 'mission': st.missionDone[id] = true; break;
+        case 'challenge': st.challenges[id] = d.m; break;
+        case 'dish': case 'song': case 'photo': st[LIKES[kind]].push({ ...d, likes: [] }); break;
+        case 'like': likes.push([a, b]); break;
+        case 'name': st.names[id] = d.v; break;
+        case 'avatar': st.avatars[id] = d.v; break;
+        case 'famname': st.famNames[id] = d.v; break;
+        case 'member': st.extra.push(d); break;
+        case 'removed': st.removed.push(id); break;
+        case 'setting': if (id === 'whatsapp') st.whatsapp = d.v; if (id === 'fx') st.fx = d; break;
+      }
+    }
+    likes.forEach(([t, w]) => { const j = t.indexOf(':'); const x = st[LIKES[t.slice(0, j)]]?.find(y => y.id === t.slice(j + 1)); if (x && !x.likes.includes(w)) x.likes.push(w); });
+    const byTs = (x, y) => (x.ts || 0) - (y.ts || 0);
+    ['expenses', 'posts', 'log', 'photos', 'dishes', 'songs'].forEach(f => st[f].sort(byTs));
+    Object.assign(S, st);
+  }
+  // Cambios locales = diferencia entre S ahora y `base` (no contra `synced`, que trae lo de los demás).
+  // Se pasan a `synced` + cola de envío de forma síncrona, para no pisarlos con lo que llegue del servidor.
+  function stage() {
+    if (!S.joined) return;
+    const cur = toItems(S), ops = [];
+    if (!base) base = new Map(synced);
+    for (const [k, v] of cur) if (base.get(k) !== v) ops.push({ k, v });
+    for (const k of base.keys()) if (!cur.has(k)) ops.push({ k, v: null });
+    base = cur;
+    if (!ops.length) return;
+    ops.forEach(o => (o.v === null ? synced.delete(o.k) : synced.set(o.k, o.v)));
+    queue.push(...ops); persist();
+  }
+  const rebase = () => { apply(); base = toItems(S); };
+  async function flush() {
+    if (!client || !S.joined) return;
+    for (const u of [...uploads]) {
+      const src = await idb.get(u.id).catch(() => null);
+      if (src) { const { error } = await client.storage.from('photos').upload(u.path, await (await fetch(src)).blob(), { contentType: 'image/jpeg', upsert: true }); if (error) { setStatus('offline'); return; } }
+      uploads = uploads.filter(x => x !== u); persist();
+    }
+    while (queue.length) {
+      const batch = queue.slice(0, 200), rows = new Map();
+      batch.forEach(o => { const i = o.k.indexOf(SEP); rows.set(o.k, { kind: o.k.slice(0, i), id: o.k.slice(i + 1), data: o.v === null ? {} : JSON.parse(o.v), deleted: o.v === null, updated_at: new Date().toISOString() }); });
+      const { error } = await client.from('items').upsert([...rows.values()], { onConflict: 'kind,id' });
+      if (error) { setStatus('offline'); return; }
+      queue.splice(0, batch.length); persist();
+    }
+    setStatus('ok');
+  }
+  const schedule = () => { if (!S.joined) return; clearTimeout(flushT); flushT = setTimeout(() => { stage(); flush(); }, 300); };
+  function onRow(r) {
+    if (!r || !r.kind) return;
+    const k = r.kind + SEP + r.id;
+    if (r.deleted) synced.delete(k); else synced.set(k, canon(r.data));
+    clearTimeout(applyT); applyT = setTimeout(() => { stage(); rebase(); persist(); safeRender(); }, 150);
+  }
+  async function pull() {
+    const rows = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await client.from('items').select('kind,id,data').eq('deleted', false).range(from, from + 999);
+      if (error) throw error;
+      rows.push(...data); if (data.length < 1000) break;
+    }
+    if (!rows.length && !synced.size) { base = new Map(); stage(); flush(); return; } // primer móvil del grupo: sube lo que hay
+    stage(); // conserva cambios locales pendientes
+    const pending = new Map(queue.map(o => [o.k, o.v]));
+    synced = new Map(rows.map(r => [r.kind + SEP + r.id, canon(r.data)]));
+    for (const [k, v] of pending) v === null ? synced.delete(k) : synced.set(k, v);
+    rebase(); persist(); safeRender(); flush();
+  }
+  function subscribe() {
+    if (channel) return;
+    channel = client.channel('items-rt').on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, p => onRow(p.new))
+      .subscribe(s => { if (s === 'SUBSCRIBED') setStatus('ok'); else if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT') setStatus('offline'); });
+  }
+  async function start() {
+    if (!window.supabase || !window.SUPA) { setStatus('offline'); return; }
+    try {
+      setStatus('connecting');
+      client = client || window.supabase.createClient(window.SUPA.url, window.SUPA.key, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'rdtc-auth' } });
+      let { data: { session } } = await client.auth.getSession();
+      if (!session) { const r = await client.auth.signInAnonymously(); if (r.error) throw r.error; session = r.data.session; }
+      uidSelf = session.user.id;
+      const { data: ok, error } = await client.rpc('is_device');
+      if (error) throw error;
+      if (!ok) { S.joined = false; save(); setStatus('locked'); render(); return; }
+      if (!S.joined) { S.joined = true; save(); }
+      await pull(); subscribe(); setMember();
+    } catch { setStatus('offline'); }
+  }
+  async function join(pin) {
+    if (!client) await start();
+    if (!client) throw new Error('Sin conexión. Prueba otra vez con internet.');
+    const { data, error } = await client.rpc('join_trip', { p_pin: pin });
+    if (error) throw new Error(error.message.includes('intentos') ? error.message : 'No se pudo comprobar el PIN. Revisa la conexión.');
+    if (!data) return false;
+    S.joined = true; save(); await pull(); subscribe(); return true;
+  }
+  const setMember = () => { if (client && uidSelf && S.me) client.from('devices').update({ member: S.me }).eq('uid', uidSelf).then(() => {}); };
+  const pathOf = id => (String(id).startsWith('tk-') ? 'tickets/' : 'album/') + id + '.jpg';
+  async function uploadPhoto(id) { uploads.push({ id, path: pathOf(id) }); persist(); flush(); }
+  async function downloadPhoto(id) {
+    if (!client || !S.joined) return null;
+    const { data, error } = await client.storage.from('photos').download(pathOf(id));
+    if (error || !data) return null;
+    return new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(data); });
+  }
+  const removePhoto = id => { uploads = uploads.filter(u => u.id !== id); persist(); client?.storage.from('photos').remove([pathOf(id)]); };
+  window.addEventListener('online', () => (client ? flush() : start()));
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && client && S.joined) pull().catch(() => setStatus('offline')); });
+  return { start, join, schedule, uploadPhoto, downloadPhoto, removePhoto, setMember, get status() { return status; } };
+})();
+let pendingRender = false;
+function safeRender() {
+  const a = document.activeElement;
+  if (document.querySelector('.sheet') || (a && /INPUT|TEXTAREA|SELECT/.test(a.tagName))) { pendingRender = true; return; }
+  pendingRender = false; render();
+}
 
 // ---------- Domain helpers ----------
 const members = () => [...window.MEMBERS, ...S.extra].filter(m => !S.removed.includes(m.id)).map(m => ({ ...m, name: S.names[m.id] || m.name, avatar: S.avatars[m.id] || m.avatar }));
@@ -164,6 +339,7 @@ function closeSheet(fromHistory) {
   if (!document.querySelector('.sheet')) return;
   document.querySelectorAll('.sheet,.sheet-bg').forEach(x => x.remove());
   if (!fromHistory && history.state?.sheet) history.back();
+  if (pendingRender) setTimeout(safeRender, 50);
 }
 const copy = async (txt, msg = 'Copiado ✅') => { try { await navigator.clipboard.writeText(txt); toast(msg); } catch { prompt('Copia el texto:', txt); } };
 
@@ -204,7 +380,8 @@ function render() {
   applyTheme();
   const app = $('#app');
   S.ui.route = route; S.ui.sub = sub; save();
-  if (!S.unlocked || !S.me) { app.innerHTML = welcome(); return; }
+  if (!S.joined) { app.innerHTML = pinScreen(); return; }
+  if (!S.me) { app.innerHTML = welcome(); return; }
   const V = { home, trip, explore, wallet, games, group, memories, ai, tastes }[route] || home;
   app.innerHTML = topbar() + `<main class="view">${V()}</main>` + nav();
   after[route]?.();
@@ -217,6 +394,7 @@ function topbar() {
   return `<header class="topbar">
     ${route === 'home' ? '<button class="brand" data-a="go" data-r="home"><span class="brand-mark">🌴</span>RD TRIP CLUB</button>'
       : `<button class="icon-btn" data-a="back" aria-label="Volver">←</button><b class="brand">${titles[route] || ''}</b>`}
+    <span class="sync-dot ${Sync.status}" title="Sincronización"></span>
     <div class="spacer"></div>
     <button class="avatars" data-a="go" data-r="group" aria-label="Grupo">${av}</button>
     <button class="icon-btn" data-a="music" aria-label="Música">${Music.playing ? '🎶' : '🔇'}</button>
@@ -227,6 +405,19 @@ function topbar() {
 function nav() {
   const btns = TABS.map(t => t[0] ? `<button class="${route === t[0] ? 'on' : ''}" data-a="go" data-r="${t[0]}"><span class="ic">${t[1]}</span>${t[2]}</button>` : '<div class="ai-slot"></div>').join('');
   return `<nav class="nav">${btns}</nav><button class="ai-fab" data-a="go" data-r="ai" aria-label="Coco, asistente IA">🥥</button>`;
+}
+
+// ---------- PIN del grupo (se comprueba en el servidor) ----------
+function pinScreen() {
+  const st = Sync.status;
+  return `<section class="welcome photo">
+    <div class="inner"><div class="label">${esc(T.crew)} · 13—26 AGO 2027</div>
+    <h1 style="font-size:44px">RD TRIP CLUB</h1><p class="tag" style="margin:8px 0 18px">${esc(T.tagline)}</p>
+    <label class="field"><span style="color:#fff">PIN del grupo 🔒</span>
+      <input class="input" id="pin" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Lo tienes en el WhatsApp del viaje"></label>
+    <button class="btn block" data-a="join" id="join-btn">Entrar al club 🌴</button>
+    <p class="tiny" style="color:#fff;opacity:.85;text-align:center;margin-top:12px">${st === 'offline' ? '⚠️ Sin conexión: hace falta internet la primera vez.' : 'Solo se pide una vez en cada móvil.'}</p>
+    </div></section>`;
 }
 
 // ---------- Welcome / invite gate ----------
@@ -675,7 +866,7 @@ after.memories = () => {
     const files = [...e.target.files]; if (!files.length) return;
     const day = (sub.mday && sub.mday !== 'all') ? sub.mday : (tripDayIdx() >= 0 ? window.DAYS[tripDayIdx()].date : 'pre');
     for (const f of files) {
-      const id = uid(); await idb.put(id, await shrink(f, 1280));
+      const id = uid(); await idb.put(id, await shrink(f, 1280)); Sync.uploadPhoto(id);
       S.photos.push({ id, by: S.me, day, tags: [], likes: [], ts: Date.now() });
       award(S.me, 10, 'foto subida', 'photo-' + id);
     }
@@ -846,7 +1037,7 @@ async function saveExpense() {
   if (!split.length) return toast('Elige al menos una persona');
   const e = { id: uid(), title, amount, cur: $('#e-c').value, cat: $('#e-cat .on').dataset.v, line: $('#e-l').value, payer: $('#e-p').value, split, ts: Date.now() };
   const f = $('#e-f').files[0];
-  if (f) { e.photo = 'tk-' + e.id; await idb.put(e.photo, await shrink(f, 1000)); }
+  if (f) { e.photo = 'tk-' + e.id; await idb.put(e.photo, await shrink(f, 1000)); Sync.uploadPhoto(e.photo); }
   S.expenses.push(e); award(S.me, 5, 'gasto apuntado', 'exp-' + e.id); save(); closeSheet(); render();
 }
 function settingsSheet() {
@@ -862,8 +1053,8 @@ function settingsSheet() {
     <button class="btn ghost block" style="margin-top:10px" data-a="credits">📷 Créditos de fotos</button>
     <div class="sec-title"><h2>Datos</h2></div>
     <div class="grid2"><button class="btn ghost" data-a="export">⬇️ Exportar</button><button class="btn ghost" data-a="import">⬆️ Importar</button></div>
-    <p class="tiny">Hasta conectar el backend, los datos viven en este móvil. Exportar/Importar sirve para pasar el estado a otro dispositivo.</p>
-    <div class="grid2" style="margin-top:10px"><button class="btn ghost" data-a="switch">🚪 Cerrar sesión</button><button class="btn ghost" data-a="reset" style="color:var(--coral)">Reiniciar demo</button></div>`, sh => {
+    <p class="tiny">Todo se comparte con el grupo en tiempo real (${Sync.status === 'ok' ? '🟢 conectado' : '🟠 sin conexión, se enviará al volver'}). Exportar guarda una copia en tu móvil.</p>
+    <div class="grid2" style="margin-top:10px"><button class="btn ghost" data-a="switch">🚪 Cerrar sesión</button><button class="btn ghost" data-a="reset" style="color:var(--coral)">Borrar caché del móvil</button></div>`, sh => {
     sh.querySelectorAll('#s-av,#s-th').forEach(p => p.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; p.querySelectorAll('button').forEach(x => x.classList.remove('on')); b.classList.add('on'); }));
   });
 }
@@ -976,8 +1167,14 @@ const A = {
   go: d => { if (d.sub) sub[d.r] = d.sub; closeSheet(true); go(d.r); },
   sub: d => { sub[d.k] = d.v; if (d.k === 'games') sub.reveal = false; if (d.k === 'zone') sub.view = d.v === 'yul' ? 'yul' : (sub.view === 'yul' ? 'all' : sub.view); render(); },
   'close-sheet': () => closeSheet(),
+  join: async () => {
+    const pin = $('#pin').value.trim(); if (!pin) return toast('Escribe el PIN del grupo');
+    const b = $('#join-btn'); b.disabled = true; b.textContent = 'Comprobando…';
+    try { if (await Sync.join(pin)) { toast('¡Dentro! 🌴'); render(); } else { toast('PIN incorrecto 🙅'); b.disabled = false; b.textContent = 'Entrar al club 🌴'; } }
+    catch (e) { toast(e.message); b.disabled = false; b.textContent = 'Entrar al club 🌴'; }
+  },
   'pick-me': d => {
-    S.me = d.id; S.ui = { route: 'home', sub: {} }; sub = {}; save(); render(); confetti(); toast(`¡Bienvenid@ al club, ${mem(d.id).name}! 🌴`);
+    S.me = d.id; S.ui = { route: 'home', sub: {} }; sub = {}; save(); Sync.setMember(); render(); confetti(); toast(`¡Bienvenid@ al club, ${mem(d.id).name}! 🌴`);
   },
   back: () => back(),
   'open-day': d => { sub.trip = 'plan'; sub.day = d.d; go('trip'); },
@@ -1010,7 +1207,7 @@ const A = {
   'toggle-fam': () => { S.settleByFam = !S.settleByFam; save(); render(); },
   'add-exp': d => expenseSheet(!!d.photo, d.line),
   'save-exp': () => saveExpense(),
-  'del-exp': d => { if (!confirm('¿Borrar este gasto?')) return; const e = S.expenses.find(x => x.id === d.id); if (e?.photo) idb.del(e.photo); S.expenses = S.expenses.filter(x => x.id !== d.id); save(); render(); },
+  'del-exp': d => { if (!confirm('¿Borrar este gasto?')) return; const e = S.expenses.find(x => x.id === d.id); if (e?.photo) { idb.del(e.photo); Sync.removePhoto(e.photo); } S.expenses = S.expenses.filter(x => x.id !== d.id); save(); render(); },
   post: () => { const t = $('#post').value.trim(); if (!t) return; S.posts.push({ id: uid(), by: S.me, text: t, ts: Date.now() }); S.drafts.post = ''; save(); render(); toast('Publicado 📌'); },
   'edit-names': () => namesSheet(),
   'add-member': () => {
@@ -1032,13 +1229,13 @@ const A = {
   'add-dish': () => addSheet('dish'), 'add-song': () => addSheet('song'),
   'save-dish': () => {
     const n = $('#t-a').value.trim(); if (!n) return toast('Escribe el plato');
-    const by = $('#t-by').value; S.dishes.push({ id: uid(), by, name: n, note: $('#t-b').value.trim(), for: $('#t-for .on').dataset.v, likes: [] });
+    const by = $('#t-by').value; S.dishes.push({ id: uid(), ts: Date.now(), by, name: n, note: $('#t-b').value.trim(), for: $('#t-for .on').dataset.v, likes: [] });
     award(S.me, 5, 'plato añadido', 'dish-' + S.dishes.length + S.me); save(); closeSheet(); render();
   },
   'save-song': () => {
     const n = $('#t-a').value.trim(); if (!n) return toast('Escribe la canción');
     const url = $('#t-u').value.trim();
-    S.songs.push({ id: uid(), by: $('#t-by').value, title: n, artist: $('#t-b').value.trim(), url: /^https:\/\//.test(url) ? url : '', for: $('#t-for .on').dataset.v, likes: [] });
+    S.songs.push({ id: uid(), ts: Date.now(), by: $('#t-by').value, title: n, artist: $('#t-b').value.trim(), url: /^https:\/\//.test(url) ? url : '', for: $('#t-for .on').dataset.v, likes: [] });
     award(S.me, 5, 'canción añadida', 'song-' + S.songs.length + S.me); save(); closeSheet(); render();
   },
   'like-dish': d => { const x = S.dishes.find(k => k.id === d.id); const i = x.likes.indexOf(S.me); i >= 0 ? x.likes.splice(i, 1) : x.likes.push(S.me); save(); render(); },
@@ -1077,7 +1274,7 @@ const A = {
   photo: d => photoSheet(d.id),
   'like-photo': d => { const p = S.photos.find(x => x.id === d.id); const i = p.likes.indexOf(S.me); if (i >= 0) p.likes.splice(i, 1); else { p.likes.push(S.me); if (p.by !== S.me) award(p.by, 5, 'like en tu foto', `like-${p.id}-${S.me}`); } save(); photoSheet(d.id); render(); },
   tag: d => { const p = S.photos.find(x => x.id === d.id); const i = p.tags.indexOf(d.m); i >= 0 ? p.tags.splice(i, 1) : p.tags.push(d.m); save(); photoSheet(d.id); },
-  'del-photo': d => { if (!confirm('¿Quitar la foto?')) return; idb.del(d.id); S.photos = S.photos.filter(p => p.id !== d.id); save(); closeSheet(); render(); },
+  'del-photo': d => { if (!confirm('¿Quitar la foto?')) return; idb.del(d.id); Sync.removePhoto(d.id); S.photos = S.photos.filter(p => p.id !== d.id); save(); closeSheet(); render(); },
   ask: d => ask(SUGGEST[+d.i]),
   claude: () => { const last = [...S.chat].reverse().find(m => m.role === 'me'); copy(tripContext(last ? last.text : '¿Qué nos recomiendas para este viaje?'), 'Contexto copiado: pégalo en Claude ✨'); window.open('https://claude.ai/new', '_blank', 'noopener'); },
   'clear-chat': () => { S.chat = []; save(); render(); },
@@ -1110,7 +1307,7 @@ const A = {
     i.click();
   },
   switch: () => { S.me = null; S.ui = { route: 'home', sub: {} }; sub = {}; save(); closeSheet(true); history.replaceState(null, '', location.pathname); route = 'home'; render(); },
-  reset: () => { if (!confirm('¿Borrar todos los datos de este dispositivo?')) return; localStorage.removeItem(KEY); indexedDB.deleteDatabase('rdtc'); location.hash = ''; location.reload(); },
+  reset: () => { if (!confirm('¿Borrar la copia local de este móvil? Lo del grupo sigue a salvo en el servidor.')) return; ['rdtc-synced', 'rdtc-queue', 'rdtc-uploads'].forEach(k => localStorage.removeItem(k)); localStorage.removeItem(KEY); indexedDB.deleteDatabase('rdtc'); location.hash = ''; location.reload(); },
 };
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-a]'); if (!el) return;
@@ -1118,11 +1315,13 @@ document.addEventListener('click', e => {
   if (el.tagName === 'A') return;
   e.preventDefault(); fn(el.dataset);
 });
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'pin') A.join(); });
 document.addEventListener('input', e => { const k = e.target.dataset?.draft; if (k) { S.drafts[k] = e.target.value; save(); } });
 
 function applyTheme() { const r = document.documentElement; if (S.theme === 'auto') r.removeAttribute('data-theme'); else r.dataset.theme = S.theme; }
 
 render();
+Sync.start();
 checkReminders();
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
 })();

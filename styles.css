@@ -473,3 +473,8 @@ textarea.input { height: 90px; padding: 12px 14px; resize: none; }
 .hcard .e { font-size: 28px; display: block; margin-bottom: 6px; }
 .hcard b { font-family: var(--font-display); font-size: 16px; display: block; margin-bottom: 4px; }
 .hcard p { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.4; }
+.sync-dot { width: 9px; height: 9px; border-radius: 50%; background: #8AA0AB; flex: 0 0 9px; }
+.sync-dot.ok { background: #1DB980; box-shadow: 0 0 0 3px rgba(29, 185, 128, .2); }
+.sync-dot.offline { background: #FFB627; } .sync-dot.connecting { background: #7FDBFF; animation: blink 1.2s infinite; }
+.welcome #pin { background: rgba(255, 255, 255, .92); color: #0B2A3C; border: 0; text-transform: uppercase; letter-spacing: .12em; font-weight: 800; text-align: center; }
+.welcome .btn { background: #fff; color: #0B2A3C; }

@@ -13,6 +13,10 @@ window.TRIP = {
   whatsapp: '', // enlace del grupo de WhatsApp (se pega en Ajustes)
 };
 
+// Base de datos compartida (Supabase). La clave es la publicable: va en la app a propósito;
+// la seguridad la da el servidor (PIN del grupo + permisos por fila).
+window.SUPA = { url: 'https://pkncpyibekxhxrsvbzwk.supabase.co', key: 'sb_publishable_vgcIu-de5Dz2IqxQgije3A_oe7uGXjT' };
+
 window.FAMILIES = [
   { id: 'f1', name: 'Familia 1', color: '#00B4C5', emoji: '🐬', room: '2A + 1 niño' },
   { id: 'f2', name: 'Familia 2', color: '#FF6B5B', emoji: '🦩', room: '2A + 1 niño' },
