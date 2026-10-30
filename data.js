@@ -19,12 +19,12 @@ window.SUPA = { url: 'https://pkncpyibekxhxrsvbzwk.supabase.co', key: 'sb_publis
 
 window.FAMILIES = [
   { id: 'f1', name: 'Chafardero', color: '#00B4C5', emoji: '🐬', room: '2A + 1 niño' },
-  { id: 'f2', name: 'Posturitas', color: '#FF6B5B', emoji: '🦩', room: '2A + 1 niño' },
+  { id: 'f2', name: 'Posturitas', color: '#FF6B5B', emoji: '🦩', room: '2A + 3 niños' },
   { id: 'f3', name: 'Bertus', color: '#FFB627', emoji: '🥭', room: '2A + 3 niños' },
-  { id: 'f4', name: 'Los Rockets', color: '#1DB980', emoji: '🌴', room: '2A + 1 adol. + 2 niños' },
+  { id: 'f4', name: 'Los Rockets', color: '#1DB980', emoji: '🌴', room: '2A + 1 niño' },
 ];
 
-// 8 adultos, 1 adolescente, 7 niños. Nombres editables desde la app.
+// 8 adultos y 8 peques, 2 de ellos adolescentes (María, 30/10). Nombres editables desde la app.
 window.MEMBERS = [
   { id: 'm1', fam: 'f1', name: 'Adulto 1', kind: 'adult', avatar: '😎' },
   { id: 'm2', fam: 'f1', name: 'Adulto 2', kind: 'adult', avatar: '🌺' },
@@ -32,6 +32,8 @@ window.MEMBERS = [
   { id: 'm4', fam: 'f2', name: 'Adulto 3', kind: 'adult', avatar: '🏄' },
   { id: 'm5', fam: 'f2', name: 'Adulto 4', kind: 'adult', avatar: '🍹' },
   { id: 'm6', fam: 'f2', name: 'Peque 2', kind: 'kid', avatar: '🦀' },
+  { id: 'm14', fam: 'f2', name: 'Peque 6', kind: 'kid', avatar: '🦄' },
+  { id: 'm15', fam: 'f2', name: 'Peque 7', kind: 'kid', avatar: '🦈' },
   { id: 'm7', fam: 'f3', name: 'Adulto 5', kind: 'adult', avatar: '⚽' },
   { id: 'm8', fam: 'f3', name: 'Adulto 6', kind: 'adult', avatar: '🌞' },
   { id: 'm9', fam: 'f3', name: 'Peque 3', kind: 'kid', avatar: '🐠' },
@@ -39,9 +41,7 @@ window.MEMBERS = [
   { id: 'm11', fam: 'f3', name: 'Peque 5', kind: 'kid', avatar: '🐙' },
   { id: 'm12', fam: 'f4', name: 'Adulto 7', kind: 'adult', avatar: '🥥' },
   { id: 'm13', fam: 'f4', name: 'Adulto 8', kind: 'adult', avatar: '🎸' },
-  { id: 'm14', fam: 'f4', name: 'Teen 1', kind: 'teen', avatar: '🎧' },
-  { id: 'm15', fam: 'f4', name: 'Peque 6', kind: 'kid', avatar: '🦈' },
-  { id: 'm16', fam: 'f4', name: 'Peque 7', kind: 'kid', avatar: '🐳' },
+  { id: 'm16', fam: 'f4', name: 'Peque 8', kind: 'kid', avatar: '🐳' },
 ];
 
 window.ZONES = [
@@ -139,14 +139,14 @@ window.FLIGHTS = [
 window.STAYS = [
   { id: 's1', zone: 'yul', name: 'Hotel aeropuerto YUL', dates: '13 → 14 ago · 1 noche (vuelo a las 09:20)', price: '~200 $ por familia', status: 'pendiente', img: 'p16', imgCap: 'Poutine, la cena típica de Montreal' },
   { id: 's2', zone: 'ltr', name: 'Villa en Las Terrenas', dates: '14 → 18 ago · 4 noches', price: '2.608–5.838 € en Airbnb (+ luz según villa) · 8 candidatas', status: 'votación', poll: 'p1', img: 'villa', imgCap: 'Playa Cosón, la playa de las villas' },
-  { id: 's3', zone: 'puj', name: 'Hard Rock Punta Cana', dates: '18 → 25 ago · 7 noches', price: '11.257 $ · 4 habitaciones', status: 'pendiente', img: 'hardrock', imgCap: 'Hard Rock Hotel & Casino Punta Cana',
+  { id: 's3', zone: 'puj', name: 'Hard Rock Punta Cana', dates: '18 → 25 ago · 7 noches', price: '≈ 11.257 $ según el PDF · a recalcular (2 adolescentes)', status: 'pendiente', img: 'hardrock', imgCap: 'Hard Rock Hotel & Casino Punta Cana',
     rooms: [
       { fam: 'f1', label: '2A + 1 niño', price: 2700 },
-      { fam: 'f2', label: '2A + 1 niño', price: 2700 },
+      { fam: 'f2', label: '2A + 3 niños*', price: 2700 },
       { fam: 'f3', label: '2A + 3 niños*', price: 2700 },
-      { fam: 'f4', label: '2A + 1 adol. + 2 niños*', price: 3157 },
+      { fam: 'f4', label: '2A + 1 niño', price: 2700 },
     ],
-    note: '* Un niño de cada familia de 5 duerme con una familia de 3: ninguna habitación pasa de 2 niños gratis.' },
+    note: '* Un niño de cada familia de 5 duerme con una familia de 3: ninguna habitación pasa de 2 niños gratis. Ojo: en el grupo hay 2 adolescentes y el Hard Rock les cobra tarifa de adolescente (en el PDF, una habitación con un adolescente salía a 3.157 $). Pedid el precio exacto al hotel con las edades.' },
 ];
 
 window.VILLAS = [
@@ -176,14 +176,14 @@ window.BUDGET = {
     { id: 'hardrock', cat: 'Hard Rock', emoji: '🎸', eur: 9621, calc: '3 × 2.700 $ + 3.157 $' },
     { id: 'destino', cat: 'Gastos en destino', emoji: '🧾', eur: 0, calc: 'Sin presupuesto en el PDF (todo incluido en el Hard Rock)' },
   ],
-  families: { f1: 5860, f2: 5860, f3: 8115, f4: 8505 },
+  families: { f1: 5860, f2: 8115, f3: 8115, f4: 5860 },
 };
 
 // Pagos grandes (PDF pág. 6). Se marca por familia quién ha pagado su parte.
 window.MILESTONES = [
-  { id: 'pay1', title: 'Comprar los vuelos', emoji: '✈️', amount: '12.480 €', detail: 'Pagado: 780 € por persona con seguro (previsto 720 €)', due: 'Cuanto antes', share: { f1: 2340, f2: 2340, f3: 3900, f4: 3900 } },
-  { id: 'pay2', title: 'Reservar la villa (50 %)', emoji: '🏡', amount: '~2.275 €', detail: '50 % al reservar, resto más adelante · luz aparte', due: 'Tras la votación', share: { f1: 427, f2: 427, f3: 711, f4: 711 } },
-  { id: 'pay3', title: 'Reservar el Hard Rock', emoji: '🎸', amount: '11.257 $', detail: 'Pago completo · cancelación gratis hasta el 18/07/2027', due: 'Cancelación gratis hasta 18 jul 2027', share: { f1: 2308, f2: 2308, f3: 2308, f4: 2698 } },
+  { id: 'pay1', title: 'Comprar los vuelos', emoji: '✈️', amount: '12.480 €', detail: 'Pagado: 780 € por persona con seguro (previsto 720 €)', due: 'Cuanto antes', share: { f1: 2340, f2: 3900, f3: 3900, f4: 2340 } },
+  { id: 'pay2', title: 'Reservar la villa (50 %)', emoji: '🏡', amount: '~2.275 €', detail: '50 % al reservar, resto más adelante · luz aparte', due: 'Tras la votación', share: { f1: 427, f2: 711, f3: 711, f4: 427 } },
+  { id: 'pay3', title: 'Reservar el Hard Rock', emoji: '🎸', amount: '≈ 11.257 $', detail: 'Pago completo · cancelación gratis hasta el 18/07/2027 · a recalcular con los 2 adolescentes', due: 'Cancelación gratis hasta 18 jul 2027', share: { f1: 2308, f2: 2308, f3: 2308, f4: 2308 } },
 ];
 
 window.DOCS_CHECKLIST = [
