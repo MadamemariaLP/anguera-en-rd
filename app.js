@@ -437,7 +437,6 @@ function home() {
   const pending = window.MILESTONES.find(p => fams().some(f => !S.paid[p.id]?.[f.id]));
   const openPoll = window.POLLS.find(p => S.votes[p.id]?.[S.me] == null);
   const word = window.LEXICON[Math.floor(Date.now() / 864e5) % window.LEXICON.length];
-  const top = members().map(m => ({ m, p: points(m.id) })).sort((a, b) => b.p - a.p).slice(0, 3);
   const quick = [
     ['trip', '🗓️', 'Planes', '#A7F0E4'], ['explore', '🗺️', 'Mapa', '#7FDBFF'], ['wallet', '💸', 'Gastos', '#FFE7A8'], ['ai', '🥥', 'Coco AI', '#FFD1E1'],
     ['games', '🏆', 'Juegos', '#E8E0FF'], ['group', '👨‍👩‍👧', 'Grupo', '#FFC2B8'], ['memories', '📸', 'Recuerdos', '#C9F2D7'], ['tastes', '🎶', 'Gustos', '#FFE0A3'],
@@ -478,9 +477,6 @@ function home() {
   ${openPoll ? `<div class="sec-title"><h2>Tu voto cuenta</h2><button data-a="go" data-r="group" data-sub="polls">Encuestas</button></div>
   ${pollCard(openPoll)}` : ''}
 
-  <div class="sec-title"><h2>Ranking</h2><button data-a="go" data-r="games">Juegos</button></div>
-  <div class="card">${top.every(t => !t.p) ? `<div class="muted">Aún nadie ha sumado puntos. Abre tu <b>misión secreta</b> en Juegos 🤫</div>` :
-    top.map((t, i) => `<div class="rank"><span class="pos-n">${['🥇', '🥈', '🥉'][i]}</span><span style="font-size:22px">${t.m.avatar}</span><b class="grow">${esc(t.m.name)}</b><b>${t.p} pts</b></div>`).join('')}</div>
 
   <div class="sec-title"><h2>Palabra del día</h2></div>
   <div class="card" style="background:linear-gradient(135deg,#FFF3C4,#FFD1E1);color:#0B2A3C;border:0">
@@ -516,7 +512,7 @@ function trip() {
     <div class="stop"><b style="background:${z.ltr.color}">LTR</b><span>Las Terrenas</span></div><div class="leg"><em>🚐</em></div>
     <div class="stop"><b style="background:${z.puj.color}">HRH</b><span>Hard Rock</span></div>
   </div>
-  <div class="seg">${[['plan', '🗓️ Itinerario'], ['flights', '✈️ Vuelos'], ['stays', '🏡 Alojamiento'], ['check', '✅ Checklist']].map(x => `<button class="${t === x[0] ? 'on' : ''}" data-a="sub" data-k="trip" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>`;
+  <div class="seg icons">${[['plan', '🗓️', 'Itinerario'], ['flights', '✈️', 'Vuelos'], ['stays', '🏡', 'Alojamiento'], ['check', '✅', 'Checklist']].map(x => `<button class="${t === x[0] ? 'on' : ''}" data-a="sub" data-k="trip" data-v="${x[0]}"><span>${x[1]}</span>${x[2]}</button>`).join('')}</div>`;
 
   if (t === 'flights') { const FS = window.FLIGHTS_STATUS; return head + `<div class="card bought" style="margin-top:14px"><div class="row"><span style="font-size:30px">✅</span><div class="grow"><b>Vuelos comprados y confirmados · ${esc(FS.airline)}</b><div class="tiny">${esc(FS.note)}</div></div></div></div>
     ${window.FLIGHTS.map(f => `<div class="pass">
@@ -698,8 +694,8 @@ function placeSheet(p, iconic) {
 function group() {
   const t = sub.group || 'fams';
   const head = `<div class="page-head"><h1>El grupo</h1><p>${fams().length} familias · ${groupLine()}</p></div>
-  <div class="seg" style="margin-top:12px">${[['fams', '👨‍👩‍👧 Familias'], ['polls', '🗳️ Encuestas'], ['board', '📌 Tablón']].map(x => `<button class="${t === x[0] ? 'on' : ''}" data-a="sub" data-k="group" data-v="${x[0]}">${x[1]}</button>`).join('')}
-  <button data-a="go" data-r="tastes">🎶 Gustos</button></div>`;
+  <div class="seg icons" style="margin-top:12px">${[['fams', '👨‍👩‍👧', 'Familias'], ['polls', '🗳️', 'Encuestas'], ['board', '📌', 'Tablón']].map(x => `<button class="${t === x[0] ? 'on' : ''}" data-a="sub" data-k="group" data-v="${x[0]}"><span>${x[1]}</span>${x[2]}</button>`).join('')}
+  <button data-a="go" data-r="tastes"><span>🎶</span>Gustos</button></div>`;
   if (t === 'polls') return head + `<div style="margin-top:14px">${window.POLLS.map(pollCard).join('')}</div>`;
   if (t === 'board') return head + `<div class="card" style="margin-top:14px">
       <textarea class="input" id="post" data-draft="post" placeholder="Escribe un anuncio para el grupo…">${esc(S.drafts.post || '')}</textarea>
@@ -797,13 +793,12 @@ function wallet() {
 
 // ---------- GAMES ----------
 function games() {
-  const t = sub.games || 'missions';
+  const t = ['retos', 'bingo', 'wheel'].includes(sub.games) ? sub.games : 'retos';
   const my = points(S.me);
-  const rk = members().map(m => ({ m, p: points(m.id) })).sort((a, b) => b.p - a.p);
-  const head = `<div class="page-head"><h1>Juegos</h1><p>Retos, bingo, misiones secretas y ranking.</p></div>
+  const head = `<div class="page-head"><h1>Juegos</h1><p>Retos, bingo dominicano y ruleta del club.</p></div>
   <div class="score-hero" style="margin-top:12px"><div class="label">Tus puntos</div><div class="pts">${my}</div>
-    <div style="font-size:13px;opacity:.95">Puesto #${rk.findIndex(r => r.m.id === S.me) + 1} de ${rk.length} · ${esc(fam(me().fam)?.name || '')}: ${famPoints(me().fam)} pts</div></div>
-  <div class="seg" style="margin-top:14px">${[['missions', '🤫 Misiones'], ['bingo', '🎰 Bingo'], ['wheel', '🎡 Ruleta'], ['rank', '🏆 Ranking']].map(x => `<button class="${t === x[0] ? 'on' : ''}" data-a="sub" data-k="games" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>`;
+    <div style="font-size:13px;opacity:.95">${esc(fam(me().fam)?.name || '')}: ${famPoints(me().fam)} pts entre toda la familia</div></div>
+  <div class="seg" style="margin-top:14px">${[['retos', '🏅 Retos'], ['bingo', '🎰 Bingo'], ['wheel', '🎡 Ruleta']].map(x => `<button class="${t === x[0] ? 'on' : ''}" data-a="sub" data-k="games" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>`;
 
   if (t === 'bingo') {
     const cells = S.bingo[S.me] || [];
@@ -821,24 +816,11 @@ function games() {
       <div id="wheel-res" style="font:800 20px var(--font-display);min-height:28px;margin-top:12px"></div>
       <button class="btn coral block" style="margin-top:8px" data-a="spin">¡Girar!</button></div>`;
   }
-  if (t === 'rank') {
-    const fr = fams().map(f => ({ f, p: famPoints(f.id) })).sort((a, b) => b.p - a.p);
-    const kids = rk.filter(r => r.m.kind !== 'adult').slice(0, 5);
-    const b = badgesOf(S.me);
-    return head + `<div class="card" style="margin-top:14px"><b>Familias</b><div class="podium">${[1, 0, 2].map(i => fr[i] ? `<div><div class="av">${fr[i].f.emoji}</div><div class="tiny">${esc(fr[i].f.name)}</div><div class="step" style="height:${[90, 66, 50][i]}px;background:${fr[i].f.color}">${fr[i].p}</div></div>` : '').join('')}</div></div>
-      <div class="sec-title"><h2>Individual</h2></div><div class="card">${rk.map((r, i) => `<div class="rank"><span class="pos-n">${i + 1}</span><span style="font-size:20px">${r.m.avatar}</span><span class="grow">${esc(r.m.name)}${r.m.id === S.me ? ' (tú)' : ''}</span><b>${r.p}</b></div>`).join('')}</div>
-      <div class="sec-title"><h2>Liga de peques 🧸</h2></div><div class="card">${kids.map((r, i) => `<div class="rank"><span class="pos-n">${['🥇', '🥈', '🥉', '4', '5'][i]}</span><span style="font-size:20px">${r.m.avatar}</span><span class="grow">${esc(r.m.name)}</span><b>${r.p}</b></div>`).join('')}</div>
-      <div class="sec-title"><h2>Tus insignias</h2></div><div class="grid2" style="grid-template-columns:repeat(3,1fr)">${window.BADGES.map(x => `<div class="badge ${b[x.id] ? 'won' : ''}"><span class="e">${x.emoji}</span><b>${esc(x.name)}</b><div>${esc(x.rule)}</div></div>`).join('')}</div>`;
-  }
-  const done = S.missionDone[S.me];
-  return head + `<div class="mission ${sub.reveal ? 'open' : ''}" style="margin-top:14px"><div class="label">Misión secreta · solo para ti</div>
-    <div class="secret">${esc(myMission(S.me))}</div>
-    ${done ? '<span class="chip" style="background:#1DB980;color:#fff">✅ Cumplida · +100</span>' : `<div class="row" style="justify-content:center;gap:8px"><button class="btn sm" style="background:#fff;color:#0B2A3C" data-a="reveal">${sub.reveal ? '🙈 Ocultar' : '👀 Revelar'}</button>
-    <button class="btn sm coral" data-a="mission-done">¡Cumplida!</button></div>`}
-    <p class="tiny" style="color:#fff;opacity:.7;margin-top:10px">Que nadie la vea. Al final del viaje se revelan todas en la cena de despedida.</p></div>
-    <div class="sec-title"><h2>Retos del club</h2></div>
+  const b = badgesOf(S.me);
+  return head + `    <div class="sec-title" style="margin-top:14px"><h2>Retos del club</h2></div>
     <div class="card">${window.CHALLENGES.map((c, i) => { const w = S.challenges[c.id]; return `<div class="exp"><div class="ic">${c.emoji}</div><div class="grow"><b>${esc(c.title)}</b><div class="tiny">${w ? `Ganador: ${mem(w).avatar} ${esc(mem(w).name)}` : 'Sin ganador todavía'}</div></div>
-      <button class="btn sm ${w ? 'ghost' : 'sea'}" data-a="challenge" data-i="${i}">${w ? 'Cambiar' : '+' + c.pts}</button></div>`; }).join('')}</div>`;
+      <button class="btn sm ${w ? 'ghost' : 'sea'}" data-a="challenge" data-i="${i}">${w ? 'Cambiar' : '+' + c.pts}</button></div>`; }).join('')}</div>
+    <div class="sec-title"><h2>Tus insignias</h2></div><div class="grid2" style="grid-template-columns:repeat(3,1fr)">${window.BADGES.map(x => `<div class="badge ${b[x.id] ? 'won' : ''}"><span class="e">${x.emoji}</span><b>${esc(x.name)}</b><div>${esc(x.rule)}</div></div>`).join('')}</div>`;
 }
 
 // ---------- MEMORIES ----------

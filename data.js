@@ -274,7 +274,6 @@ window.WHEEL = ['🍦 Paga los helados', '🎶 Elige la música', '📸 Fotógra
 window.BADGES = [
   { id: 'b1', emoji: '🌊', name: 'Tiburón', rule: 'Cumple 2 retos de agua' },
   { id: 'b2', emoji: '📸', name: 'Paparazzi', rule: 'Sube 10 fotos' },
-  { id: 'b3', emoji: '🎯', name: 'Agente secreto', rule: 'Cumple tu misión secreta' },
   { id: 'b4', emoji: '🎰', name: 'Bingo!', rule: 'Canta una línea' },
   { id: 'b5', emoji: '💸', name: 'Cuentas claras', rule: 'Tu familia ha pagado todo' },
   { id: 'b6', emoji: '🗳️', name: 'Demócrata', rule: 'Vota en todas las encuestas' },
