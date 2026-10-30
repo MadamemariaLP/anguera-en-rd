@@ -851,7 +851,7 @@ function photoSheet(id) {
 // ---------- Banda sonora: Juan Luis Guerra (reproductor oficial de YouTube incrustado) ----------
 // No se puede alojar su audio (copyright); el embed oficial sí es legal. Vídeos verificados por oEmbed el 30/10/2026.
 const SOUNDTRACK = [
-  { id: 'WfMO_AETgB0', t: 'Bachata Rosa', a: 'Juan Luis Guerra 4.40' },
+  { id: 'AWozq4Phckc', t: 'La Travesía', a: 'Juan Luis Guerra' }, // canción de entrada (elegida por María)
   { id: 'v0ckuv1xBm0', t: 'Burbujas de Amor', a: 'Juan Luis Guerra 4.40' },
   { id: '_4NBD3SqBwg', t: 'Bachata en Fukuoka', a: 'Juan Luis Guerra' },
   { id: 'x3G4VFThbEg', t: 'La Bilirrubina', a: 'Juan Luis Guerra 4.40' },
