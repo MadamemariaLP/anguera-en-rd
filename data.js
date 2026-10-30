@@ -145,13 +145,14 @@ window.STAYS = [
 ];
 
 window.VILLAS = [
-  { id: 'v1', name: 'Casa del Río · Playa Cosón', meta: '9 dorm · 16 camas · 8,5 baños', rating: 4.83, price: 3000, tags: ['Favorita', 'Chef y personal incluidos', 'Frente al mar'] },
-  { id: 'v2', name: 'Villa tropical beachfront', meta: '8 dorm · 12 camas · 8 baños', rating: 4.86, price: 3200, tags: ['Primera línea', 'Piscina'] },
-  { id: 'v3', name: 'Casa Coco · a 50 m de Cosón', meta: '7 dorm · 11 camas · 6,5 baños', rating: 4.87, price: 3600, tags: ['Chef opcional'] },
-  { id: 'v4', name: 'Villa Balboa · Cap Bonita', meta: '6 dorm · 9 camas · 6,5 baños', rating: 4.91, price: 4500, tags: ['Acceso playa VIP', '+45 $/noche luz'] },
-  { id: 'v5', name: 'Villa de lujo · Río Cosón', meta: '6 dorm · 18 camas · 6,5 baños', rating: 4.75, price: 6100, tags: ['Chef incluido', '+300 € luz'] },
+  { id: 'v1', url: '', name: 'Casa del Río · Playa Cosón', meta: '9 dorm · 16 camas · 8,5 baños', rating: 4.83, price: 3000, tags: ['Favorita', 'Chef y personal incluidos', 'Frente al mar'] },
+  { id: 'v2', url: '', name: 'Villa tropical beachfront', meta: '8 dorm · 12 camas · 8 baños', rating: 4.86, price: 3200, tags: ['Primera línea', 'Piscina'] },
+  { id: 'v3', url: '', name: 'Casa Coco · a 50 m de Cosón', meta: '7 dorm · 11 camas · 6,5 baños', rating: 4.87, price: 3600, tags: ['Chef opcional'] },
+  { id: 'v4', url: '', name: 'Villa Balboa · Cap Bonita', meta: '6 dorm · 9 camas · 6,5 baños', rating: 4.91, price: 4500, tags: ['Acceso playa VIP', '+45 $/noche luz'] },
+  { id: 'v5', url: '', name: 'Villa de lujo · Río Cosón', meta: '6 dorm · 18 camas · 6,5 baños', rating: 4.75, price: 6100, tags: ['Chef incluido', '+300 € luz'] },
 ];
 
+// url: enlace del anuncio en Airbnb (pendiente de que María los pase).
 // Presupuesto del grupo (PDF pág. 5). EUR.
 window.BUDGET = {
   total: 28340, perPerson: 1770,

@@ -231,7 +231,7 @@ function nav() {
 function welcome() {
   const groups = fams().map(f => `<div class="fam-label">${f.emoji} ${esc(f.name)}</div><div class="who-grid">${members().filter(m => m.fam === f.id).map(m =>
     `<button data-a="pick-me" data-id="${m.id}"><span class="e">${m.avatar}</span>${esc(m.name)}</button>`).join('')}</div>`).join('');
-  return `<section class="welcome">${scene(700)}
+  return `<section class="welcome photo">
     <div class="inner"><div class="label">${esc(T.crew)} · 13—26 AGO 2027</div>
     <h1 style="font-size:44px">RD TRIP CLUB</h1><p class="tag" style="margin:8px 0 14px">${esc(T.tagline)}</p>
     <h2 style="font-size:24px">¿Quién eres? 👋</h2>
@@ -251,11 +251,12 @@ function home() {
     ['games', '🏆', 'Juegos', '#E8E0FF'], ['group', '👨‍👩‍👧', 'Grupo', '#FFC2B8'], ['memories', '📸', 'Recuerdos', '#C9F2D7'], ['tastes', '🎶', 'Gustos', '#FFE0A3'],
   ];
   return `
-  <section class="hero">${scene(320)}
+  <section class="hero photo">
     <div class="content">
-      <div class="kicker">República Dominicana 🇩🇴</div>
-      <h1>¡Qué lo que,<br>${esc(me().name.split(' ')[0])}!</h1>
+      <div class="kicker">Rep. Dominicana 🇩🇴 · agosto 2027</div>
+      <h1>¡KLK,<br>mi gente!</h1>
       <div class="tag">Friends, sun & unforgettable moments.</div>
+      <div class="cd-label">Cuenta atrás para la isla</div>
       <div class="countdown" id="cd"></div>
       <div class="hero-stats"><span class="chip">👥 ${members().length} viajeros</span><span class="chip">🌙 12 noches</span><span class="chip">📍 3 paradas</span></div>
     </div>
@@ -345,7 +346,8 @@ function trip() {
     ${window.VILLAS.map((v, i) => `<div class="card villa"><div class="thumb">${['🏡', '🌴', '🥥', '🐚', '💎'][i]}</div><div class="grow">
       <b>${esc(v.name)}</b><div class="tiny">${esc(v.meta)} · ★ ${v.rating}</div>
       <div class="tags">${v.tags.map(x => `<span class="${x === 'Favorita' ? 'hot' : ''}">${esc(x)}</span>`).join('')}</div>
-      <div style="margin-top:6px;font:800 18px var(--font-display)">${eur(v.price)} <span class="tiny">· 4 noches · ${eur(Math.round(v.price / members().length))}/pers.</span></div></div></div>`).join('')}
+      <div style="margin-top:6px;font:800 18px var(--font-display)">${eur(v.price)} <span class="tiny">· 4 noches · ${eur(Math.round(v.price / members().length))}/pers.</span></div>
+      ${v.url ? `<a class="btn sm airbnb" href="${esc(v.url)}" target="_blank" rel="noopener">Ver en Airbnb ↗</a>` : ''}</div></div>`).join('')}
     <div class="sec-title"><h2>Vota la villa</h2></div>${pollCard(p1)}
     <p class="tiny" style="margin-top:8px">Ojo: la luz se paga aparte en todas las villas.</p></div>`;
   }
@@ -383,7 +385,8 @@ function pollCard(p) {
   const mine = v[S.me];
   return `<div class="card"><b>${p.emoji} ${esc(p.q)}</b><div class="tiny">${total} de ${members().length} han votado</div>
     ${p.options.map((o, i) => { const c = Object.values(v).filter(x => x === i).length; const pct = total ? Math.round(c / total * 100) : 0;
-      return `<button class="poll-opt ${mine === i ? 'mine' : ''}" data-a="vote" data-p="${pi}" data-i="${i}"><i style="width:${mine != null ? pct : 0}%"></i><span>${esc(o)}</span>${mine != null ? `<b>${pct}%</b>` : ''}</button>`; }).join('')}</div>`;
+      const link = p.id === 'p1' && window.VILLAS[i]?.url;
+      return `<div class="poll-row"><button class="poll-opt ${mine === i ? 'mine' : ''}" data-a="vote" data-p="${pi}" data-i="${i}"><i style="width:${mine != null ? pct : 0}%"></i><span>${esc(o)}</span>${mine != null ? `<b>${pct}%</b>` : ''}</button>${link ? `<a class="airbnb-mini" href="${esc(link)}" target="_blank" rel="noopener" aria-label="Ver en Airbnb">Airbnb ↗</a>` : ''}</div>`; }).join('')}</div>`;
 }
 
 // ---------- EXPLORE ----------
@@ -842,73 +845,30 @@ function photoSheet(id) {
   async sh => { const el = $('[data-ph]', sh); el.style.backgroundImage = `url(${await loadPhoto(p.id)})`; });
 }
 
-// ---------- Intro music: bachata instrumental original (Web Audio, sin archivos) ----------
+// ---------- Intro music: «Notanico Merengue», Kevin MacLeod (CC BY 3.0), recortado a 46 s ----------
 const Music = (() => {
-  let ctx, master, playing = false, stopT;
-  const N = n => 440 * Math.pow(2, (n - 69) / 12); // MIDI → Hz
-  const BPM = 128, B = 60 / BPM, E = B / 2;
-  // i–iv–V7 en La menor, la progresión clásica de bachata
-  const CH = { Am: [57, 60, 64], Dm: [62, 65, 69], E7: [64, 68, 71, 74], C: [60, 64, 67], G: [55, 59, 62] };
-  const PROG = ['Am', 'Am', 'Dm', 'E7', 'Am', 'C', 'Dm', 'E7', 'Am', 'Am', 'Dm', 'E7', 'Am', 'G', 'E7', 'Am'];
-  const MEL = {
-    Am: [81, 76, 72, 76, 81, 83, 84, 83], Dm: [86, 81, 77, 81, 86, 84, 81, 77], E7: [80, 83, 86, 83, 88, 86, 83, 80],
-    C: [79, 76, 72, 76, 79, 81, 79, 76], G: [79, 74, 71, 74, 79, 81, 83, 79],
-  };
-  function pluck(t, f, dur, vol, bright = 2600) {
-    const o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
-    o1.type = 'triangle'; o2.type = 'sawtooth'; o1.frequency.value = f; o2.frequency.value = f * 1.003;
-    lp.type = 'lowpass'; lp.frequency.setValueAtTime(bright, t); lp.frequency.exponentialRampToValueAtTime(500, t + dur);
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    const g2 = ctx.createGain(); g2.gain.value = 0.35; o2.connect(g2).connect(lp); o1.connect(lp); lp.connect(g).connect(master);
-    o1.start(t); o2.start(t); o1.stop(t + dur + .05); o2.stop(t + dur + .05);
-  }
-  function bass(t, f, dur) {
-    const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = f;
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(.5, t + .02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g).connect(master); o.start(t); o.stop(t + dur + .05);
-  }
-  function bongo(t, hi, acc) {
-    const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine';
-    const f = hi ? 420 : 290; o.frequency.setValueAtTime(f * 1.5, t); o.frequency.exponentialRampToValueAtTime(f, t + .03);
-    g.gain.setValueAtTime(acc ? .32 : .16, t); g.gain.exponentialRampToValueAtTime(0.0001, t + .16);
-    o.connect(g).connect(master); o.start(t); o.stop(t + .2);
-  }
-  let noiseBuf;
-  function guira(t, acc) {
-    if (!noiseBuf) { noiseBuf = ctx.createBuffer(1, ctx.sampleRate * .1, ctx.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
-    const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
-    s.buffer = noiseBuf; f.type = 'highpass'; f.frequency.value = 6500;
-    g.gain.setValueAtTime(acc ? .14 : .06, t); g.gain.exponentialRampToValueAtTime(0.0001, t + (acc ? .09 : .04));
-    s.connect(f).connect(g).connect(master); s.start(t); s.stop(t + .1);
-  }
-  function schedule(t0) {
-    PROG.forEach((c, bar) => {
-      const t = t0 + bar * 4 * B, ch = CH[c];
-      MEL[c].forEach((n, i) => pluck(t + i * E, N(n), .32, i % 2 ? .07 : .1));
-      if (bar % 4 === 3) [0, 1, 2, 3].forEach(i => pluck(t + 3.5 * B + i * E / 2, N(MEL[c][7 - i] - 12), .18, .06, 3200)); // floreo de requinto
-      [0, 2].forEach(b => ch.forEach((n, k) => pluck(t + (b + 1) * B + k * .012, N(n - 12), .22, .035, 1800))); // segunda guitarra
-      bass(t, N(ch[0] - 24), B * 1.4); bass(t + 1.5 * B, N(ch[0] - 24), B * .6); bass(t + 2 * B, N(ch[2] - 24), B * 1.2); bass(t + 3.5 * B, N(ch[1] - 24), B * .5);
-      for (let i = 0; i < 8; i++) { bongo(t + i * E, i % 2 === 0, i === 0 || i === 4); guira(t + i * E, i % 2 === 0); if (i % 2) guira(t + i * E + E / 2, false); }
-    });
-    return PROG.length * 4 * B;
-  }
-  function start() {
+  let ctx, gain, src, buf, playing = false;
+  async function start() {
     if (playing || !S.music) return;
+    playing = true;
     try {
       if (navigator.audioSession) navigator.audioSession.type = 'playback'; // iPhone: suena aunque el móvil esté en silencio
       ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
-      ctx.resume();
-      const comp = ctx.createDynamicsCompressor(); master = ctx.createGain(); master.connect(comp).connect(ctx.destination);
-      const t0 = ctx.currentTime + .1, len = schedule(t0);
-      master.gain.setValueAtTime(0.0001, t0); master.gain.exponentialRampToValueAtTime(.55, t0 + 1.2);
-      master.gain.setValueAtTime(.55, t0 + len - 3); master.gain.exponentialRampToValueAtTime(0.0001, t0 + len + .3);
-      playing = true; clearTimeout(stopT); stopT = setTimeout(() => { playing = false; }, (len + .5) * 1000);
-    } catch { /* sin audio */ }
+      await ctx.resume();
+      if (!buf) buf = await ctx.decodeAudioData(await (await fetch('audio/merengue.m4a')).arrayBuffer());
+      if (!playing) return;
+      gain = ctx.createGain(); src = ctx.createBufferSource(); src.buffer = buf;
+      src.connect(gain).connect(ctx.destination);
+      const t = ctx.currentTime; gain.gain.setValueAtTime(0.0001, t); gain.gain.exponentialRampToValueAtTime(.8, t + 1.2);
+      src.onended = () => { playing = false; };
+      src.start();
+    } catch { playing = false; }
   }
   function stop() {
-    if (!playing || !master) return;
-    const t = ctx.currentTime; master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value, t); master.gain.exponentialRampToValueAtTime(0.0001, t + .4);
-    const m = master; setTimeout(() => m.disconnect(), 500); playing = false;
+    playing = false;
+    if (!src || !gain) return;
+    const t = ctx.currentTime; gain.gain.cancelScheduledValues(t); gain.gain.setValueAtTime(gain.gain.value, t); gain.gain.exponentialRampToValueAtTime(0.0001, t + .4);
+    const s0 = src; setTimeout(() => { try { s0.stop(); } catch {} }, 450);
   }
   return { start, stop, get playing() { return playing; } };
 })();
@@ -983,7 +943,7 @@ const A = {
   mapview: d => { sub.view = d.v; S.ui.sub = sub; save(); animateView(VIEWS[d.v]); document.querySelectorAll('.map-zoom button').forEach(b => b.classList.toggle('on', b.dataset.v === d.v)); },
   place: d => placeSheet(window.PLACES.find(p => p.id === d.id)),
   iconic: d => placeSheet(window.ICONIC.find(p => p.id === d.id), true),
-  credits: () => sheet(`<h2>📷 Créditos de fotos</h2><p class="muted">Fotos reales de Wikimedia Commons con licencia libre.</p>${Object.entries(window.CREDITS).map(([k, c]) => `<div class="exp"><div class="ic" style="background:center/cover url(img/${k}.jpg)"></div><div class="grow"><b>${esc(c.a)}</b><div class="tiny">${esc(c.l)}</div></div><a class="btn sm ghost" href="${esc(c.u)}" target="_blank" rel="noopener">Ver</a></div>`).join('')}<p class="tiny">Mapa: Natural Earth (dominio público). Música: composición original sintetizada en la app.</p>`),
+  credits: () => sheet(`<h2>📷 Créditos de fotos</h2><p class="muted">Fotos reales de Wikimedia Commons con licencia libre.</p>${Object.entries(window.CREDITS).map(([k, c]) => `<div class="exp"><div class="ic" style="background:center/cover url(img/${k}.jpg)"></div><div class="grow"><b>${esc(c.a)}</b><div class="tiny">${esc(c.l)}</div></div><a class="btn sm ghost" href="${esc(c.u)}" target="_blank" rel="noopener">Ver</a></div>`).join('')}<p class="tiny">Mapa: Natural Earth (dominio público). Música: «Notanico Merengue», Kevin MacLeod (incompetech.com), CC BY 3.0, recortada.</p>`),
   paid: d => {
     const p = window.MILESTONES[+d.p]; const x = S.paid[p.id] = S.paid[p.id] || {}; x[d.f] = !x[d.f];
     if (x[d.f]) { members().filter(m => m.fam === d.f && m.kind === 'adult').forEach(m => award(m.id, 25, 'pago hecho', `pay-${p.id}-${m.id}`)); confetti(14); }
