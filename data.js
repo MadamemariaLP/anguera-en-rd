@@ -128,7 +128,7 @@ window.DAYS = [
 ];
 
 // Vuelos verificados (capturas de la reserva, 29/10/2026). Comprados y confirmados ✅
-window.FLIGHTS_STATUS = { bought: true, airline: 'Air Transat', note: 'Reserva confirmada · 16 billetes ida y vuelta vía Montreal.' };
+window.FLIGHTS_STATUS = { bought: true, airline: 'Air Transat', note: 'Reserva confirmada · 16 billetes ida y vuelta vía Montreal · 780 €/persona con seguro incluido (12.480 € en total).' };
 window.FLIGHTS = [
   { leg: 'Ida 1/2', no: 'TS0261', from: 'BCN', fromCity: 'Barcelona T2', to: 'YUL', toCity: 'Montreal', date: 'Vie 13 ago', dep: '14:50', arr: '17:20', dur: '8 h 30 min', note: 'Noche en Montreal: conexión de 16 h' },
   { leg: 'Ida 2/2', no: 'TS0398', from: 'YUL', fromCity: 'Montreal', to: 'PUJ', toCity: 'Punta Cana T-A', date: 'Sáb 14 ago', dep: '09:20', arr: '13:45', dur: '4 h 25 min', note: 'Total ida: 28 h 55 min (con la noche)' },
@@ -181,7 +181,7 @@ window.BUDGET = {
 
 // Pagos grandes (PDF pág. 6). Se marca por familia quién ha pagado su parte.
 window.MILESTONES = [
-  { id: 'pay1', title: 'Comprar los vuelos', emoji: '✈️', amount: '11.520 €', detail: '720 € por persona · pago completo · cuanto antes', due: 'Cuanto antes', share: { f1: 2160, f2: 2160, f3: 3600, f4: 3600 } },
+  { id: 'pay1', title: 'Comprar los vuelos', emoji: '✈️', amount: '12.480 €', detail: 'Pagado: 780 € por persona con seguro (previsto 720 €)', due: 'Cuanto antes', share: { f1: 2340, f2: 2340, f3: 3900, f4: 3900 } },
   { id: 'pay2', title: 'Reservar la villa (50 %)', emoji: '🏡', amount: '~2.275 €', detail: '50 % al reservar, resto más adelante · luz aparte', due: 'Tras la votación', share: { f1: 427, f2: 427, f3: 711, f4: 711 } },
   { id: 'pay3', title: 'Reservar el Hard Rock', emoji: '🎸', amount: '11.257 $', detail: 'Pago completo · cancelación gratis hasta el 18/07/2027', due: 'Cancelación gratis hasta 18 jul 2027', share: { f1: 2308, f2: 2308, f3: 2308, f4: 2698 } },
 ];

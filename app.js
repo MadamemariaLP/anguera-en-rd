@@ -522,7 +522,7 @@ function trip() {
     <div class="bottom"><div><span class="tiny">Fecha</span><b>${esc(f.date)}</b></div><div><span class="tiny">Sale</span><b>${esc(f.dep)}</b></div><div><span class="tiny">Llega</span><b>${esc(f.arr)}</b></div></div>
     <div class="tiny" style="padding:0 18px 14px">${esc(f.note)}</div></div>`).join('')}
     <div class="card" style="margin-top:12px"><b>🍁 eTA de Canadá</b><p class="muted" style="margin:6px 0 0">Hacemos escala en Montreal a la ida y a la vuelta: cada viajero (peques incluidos) necesita su eTA. Márcalo en ✅ Checklist.</p></div>
-    <div class="card"><b>🧠 Por qué vía Montreal</b><p class="muted" style="margin:6px 0 0">16 × 720 € = 11.520 € + 800 $ de hotel ≈ 12.205 €. Vía Madrid serían +1.000 € × 16 = 16.000 €. Ahorro ~3.800 € para el grupo.</p></div></div>`; }
+    <div class="card"><b>🧠 Por qué vía Montreal</b><p class="muted" style="margin:6px 0 0">Pagado: 16 × 780 € (con seguro) = 12.480 € + 800 $ de hotel. Vía Madrid habrían sido más de 1.000 € por persona: aun con el seguro, el grupo se ahorra unos 3.000 €.</p></div></div>`; }
 
   if (t === 'stays') {
     const p1 = window.POLLS[0];
