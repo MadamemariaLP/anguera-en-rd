@@ -345,11 +345,11 @@ function trip() {
       <div style="margin-top:8px;font-weight:800">${esc(s.price)}</div>
       ${s.rooms ? `<div style="margin-top:8px">${s.rooms.map(r => `<div class="settle"><span>${fam(r.fam).emoji}</span><span class="grow">${esc(fam(r.fam).name)} · ${esc(r.label)}</span><b>${num(r.price)} $</b></div>`).join('')}<p class="tiny">${esc(s.note)}</p></div>` : ''}
     </div>`).join('')}
-    <div class="sec-title"><h2>Villas candidatas</h2><span class="tiny">Las Terrenas · ≥ 4,75 ★</span></div>
-    ${window.VILLAS.map((v, i) => `<div class="card villa"><div class="thumb">${['🏡', '🌴', '🥥', '🐚', '💎'][i]}</div><div class="grow">
-      <b>${esc(v.name)}</b><div class="tiny">${esc(v.meta)} · ★ ${v.rating}</div>
+    <div class="sec-title"><h2>Villas candidatas</h2><span class="tiny">${window.VILLAS.length} opciones · Las Terrenas</span></div>
+    ${window.VILLAS.map((v, i) => `<div class="card villa"><div class="thumb">${['🏡', '🌴', '🥥', '🐚', '💎', '🌺', '🛎️', '🌊'][i] || '🏠'}</div><div class="grow">
+      <b>${esc(v.name)}</b><div class="tiny">${esc(v.meta)} · ★ ${v.rating ? String(v.rating).replace('.', ',') : 'Nuevo'}</div>
       <div class="tags">${v.tags.map(x => `<span class="${x === 'Favorita' ? 'hot' : ''}">${esc(x)}</span>`).join('')}</div>
-      <div style="margin-top:6px;font:800 18px var(--font-display)">${eur(v.price)} <span class="tiny">· 4 noches · ${eur(Math.round(v.price / members().length))}/pers.</span></div>
+      <div style="margin-top:6px;font:800 18px var(--font-display)">${v.price ? `${eur(v.price)} <span class="tiny">· 4 noches · ${eur(Math.round(v.price / members().length))}/pers.</span>` : '<span class="tiny" style="font:700 13px var(--font)">Precio por confirmar · míralo en Airbnb</span>'}</div>
       ${v.url ? `<a class="btn sm airbnb" href="${esc(v.url)}" target="_blank" rel="noopener">Ver en Airbnb ↗</a>` : ''}</div></div>`).join('')}
     <div class="sec-title"><h2>Vota la villa</h2></div>${pollCard(p1)}
     <p class="tiny" style="margin-top:8px">Ojo: la luz se paga aparte en todas las villas.</p></div>`;

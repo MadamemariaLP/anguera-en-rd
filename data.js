@@ -133,7 +133,7 @@ window.FLIGHTS = [
 
 window.STAYS = [
   { id: 's1', zone: 'yul', name: 'Hotel aeropuerto YUL', dates: '13 → 14 ago · 1 noche (vuelo a las 09:20)', price: '~200 $ por familia', status: 'pendiente', img: 'p16', imgCap: 'Poutine, la cena típica de Montreal' },
-  { id: 's2', zone: 'ltr', name: 'Villa en Las Terrenas', dates: '14 → 18 ago · 4 noches', price: '3.000–6.100 € + luz', status: 'votación', poll: 'p1', img: 'villa', imgCap: 'Playa Cosón, la playa de las villas' },
+  { id: 's2', zone: 'ltr', name: 'Villa en Las Terrenas', dates: '14 → 18 ago · 4 noches', price: '3.000–6.100 € (+ luz según villa) · 8 candidatas', status: 'votación', poll: 'p1', img: 'villa', imgCap: 'Playa Cosón, la playa de las villas' },
   { id: 's3', zone: 'puj', name: 'Hard Rock Punta Cana', dates: '18 → 25 ago · 7 noches', price: '11.257 $ · 4 habitaciones', status: 'pendiente', img: 'hardrock', imgCap: 'Hard Rock Hotel & Casino Punta Cana',
     rooms: [
       { fam: 'f1', label: '2A + 1 niño', price: 2700 },
@@ -145,14 +145,18 @@ window.STAYS = [
 ];
 
 window.VILLAS = [
-  { id: 'v1', url: '', name: 'Casa del Río · Playa Cosón', meta: '9 dorm · 16 camas · 8,5 baños', rating: 4.83, price: 3000, tags: ['Favorita', 'Chef y personal incluidos', 'Frente al mar'] },
-  { id: 'v2', url: '', name: 'Villa tropical beachfront', meta: '8 dorm · 12 camas · 8 baños', rating: 4.86, price: 3200, tags: ['Primera línea', 'Piscina'] },
-  { id: 'v3', url: '', name: 'Casa Coco · a 50 m de Cosón', meta: '7 dorm · 11 camas · 6,5 baños', rating: 4.87, price: 3600, tags: ['Chef opcional'] },
-  { id: 'v4', url: '', name: 'Villa Balboa · Cap Bonita', meta: '6 dorm · 9 camas · 6,5 baños', rating: 4.91, price: 4500, tags: ['Acceso playa VIP', '+45 $/noche luz'] },
-  { id: 'v5', url: '', name: 'Villa de lujo · Río Cosón', meta: '6 dorm · 18 camas · 6,5 baños', rating: 4.75, price: 6100, tags: ['Chef incluido', '+300 € luz'] },
+  { id: 'v1', url: 'https://www.airbnb.es/rooms/1017327979722645721?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Casa del Río · Playa Cosón', meta: '9 dorm · 16 camas · 8,5 baños', rating: 4.83, price: 3000, tags: ['Favorita', 'Chef y personal incluidos', 'Frente al mar', 'Luz incluida (según el anuncio)'] },
+  { id: 'v2', url: 'https://www.airbnb.es/rooms/10182938?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa tropical beachfront', meta: '8 dorm · 12 camas · 8 baños', rating: 4.86, price: 3200, tags: ['Primera línea', 'Piscina'] },
+  { id: 'v3', url: 'https://www.airbnb.es/rooms/1886712?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Casa Coco · a 50 m de Cosón', meta: '7 dorm · 11 camas · 6,5 baños', rating: 4.87, price: 3600, tags: ['Chef opcional'] },
+  { id: 'v4', url: 'https://www.airbnb.es/rooms/1138147595655505633?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa Balboa · Cap Bonita', meta: '6 dorm · 9 camas · 6,5 baños', rating: 4.91, price: 4500, tags: ['Acceso playa VIP', '+45 $/noche luz'] },
+  { id: 'v5', url: 'https://www.airbnb.es/rooms/1592054430164573904?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa de lujo · Río Cosón', meta: '6 dorm · 18 camas · 6,5 baños', rating: 4.75, price: 6100, tags: ['Chef incluido', '+300 € luz'] },
+  { id: 'v6', url: 'https://www.airbnb.es/rooms/1790162866194806261?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa Angela · El Portillo', meta: '5 dorm · 9 camas · 5 baños · hasta 16', rating: null, price: null, tags: ['Frente a la playa', 'Nueva: sin reseñas'] },
+  { id: 'v7', url: 'https://www.airbnb.es/rooms/1605852786416374364?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villas Paul · Portillo', meta: '6 dorm · 6 camas · 5,5 baños', rating: 5.0, price: null, tags: ['Mayordomo y cocineros', 'Comunidad privada', 'Ojo: solo 6 camas'] },
+  { id: 'v8', url: 'https://www.airbnb.es/rooms/7179978?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa única frente a la playa', meta: '8 dorm · 9 camas · 7 baños · 14–17 plazas', rating: 4.79, price: null, tags: ['Frente a la playa'] },
 ];
 
-// url: enlace del anuncio en Airbnb (pendiente de que María los pase).
+// url: anuncio de Airbnb (María, 30/10), con fechas 14–18 ago y 16 huéspedes. price null = por confirmar.
+// Las opciones de la encuesta p1 van en el mismo orden (los votos se guardan por índice: añadir siempre al final).
 // Presupuesto del grupo (PDF pág. 5). EUR.
 window.BUDGET = {
   total: 28340, perPerson: 1770,
@@ -206,7 +210,7 @@ window.PLACES = [
 ];
 
 window.POLLS = [
-  { id: 'p1', q: '¿Qué villa reservamos en Las Terrenas?', emoji: '🏡', options: ['Casa del Río · 3.000 €', 'Tropical beachfront · 3.200 €', 'Casa Coco · 3.600 €', 'Villa Balboa · 4.500 €', 'Lujo Río Cosón · 6.100 €'] },
+  { id: 'p1', q: '¿Qué villa reservamos en Las Terrenas?', emoji: '🏡', options: ['Casa del Río · 3.000 €', 'Tropical beachfront · 3.200 €', 'Casa Coco · 3.600 €', 'Villa Balboa · 4.500 €', 'Lujo Río Cosón · 6.100 €', 'Villa Angela · El Portillo', 'Villas Paul · Portillo', 'Villa única frente a la playa'] },
   { id: 'p2', q: '¿Transfer privado o coches de alquiler?', emoji: '🚐', options: ['Transfer privado (1.100 $)', 'Alquilar 2–3 coches'] },
   { id: 'p3', q: '¿Quads al Salto El Limón?', emoji: '🏍️', options: ['¡Sí, todos!', 'Solo adultos', 'Paso'] },
   { id: 'p4', q: 'Excursión estrella desde Punta Cana', emoji: '⭐', options: ['Isla Saona', 'Catamarán party', 'Hoyo Azul', 'Nada, resort a muerte'] },
