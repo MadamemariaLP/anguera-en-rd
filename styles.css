@@ -425,3 +425,19 @@ textarea.input { height: 90px; padding: 12px 14px; resize: none; }
 .poll-row .poll-opt { flex: 1; }
 .airbnb-mini { margin-top: 7px; display: grid; place-items: center; padding: 0 10px; border-radius: 13px; background: #FF5A5F; color: #fff; font-size: 11.5px; font-weight: 800; text-decoration: none; white-space: nowrap; }
 .btn.airbnb { margin-top: 8px; background: #FF5A5F; color: #fff; text-decoration: none; }
+
+/* ---------- Banda sonora (YouTube) ---------- */
+.yt { position: fixed; z-index: 40; right: 12px; bottom: calc(92px + env(safe-area-inset-bottom)); width: min(300px, calc(100% - 24px)); border-radius: 20px; overflow: hidden; background: #0B2A3C; color: #fff; box-shadow: 0 16px 40px -12px rgba(0, 0, 0, .55); animation: rise .3s ease both; }
+.yt iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; }
+.yt-bar { display: flex; align-items: center; gap: 10px; padding: 9px 10px 9px 12px; }
+.yt-bar b { font-size: 13.5px; } .yt-bar .tiny { color: #A9C5CF; }
+.yt-bar .yt-ext { width: 32px; height: 32px; border-radius: 50%; background: #FF0033; color: #fff; display: grid; place-items: center; text-decoration: none; font-weight: 800; }
+.yt-bar button { width: 32px; height: 32px; border-radius: 50%; background: rgba(255, 255, 255, .14); color: #fff; font-size: 14px; }
+.yt-eq { display: flex; align-items: flex-end; gap: 2px; height: 16px; }
+.yt-eq i { width: 3px; background: #FFB627; border-radius: 2px; animation: eq .9s ease-in-out infinite; }
+.yt-eq i:nth-child(2) { animation-delay: .2s; background: #FF6B5B; } .yt-eq i:nth-child(3) { animation-delay: .4s; background: #00B4C5; }
+@keyframes eq { 0%, 100% { height: 4px; } 50% { height: 16px; } }
+.song-card { flex: 0 0 132px; padding: 14px 12px; border-radius: 20px; text-align: left; color: #fff; display: flex; flex-direction: column; gap: 4px; background: linear-gradient(135deg, hsl(var(--h) 85% 55%), hsl(calc(var(--h) + 40) 80% 45%)); box-shadow: var(--shadow-sm); scroll-snap-align: start; }
+.song-card .disc { font-size: 30px; animation: spin 6s linear infinite; display: inline-block; width: 36px; }
+.song-card b { font-size: 14px; line-height: 1.15; } .song-card .tiny { color: rgba(255, 255, 255, .85); }
+@keyframes spin { to { transform: rotate(360deg); } }

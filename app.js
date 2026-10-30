@@ -217,7 +217,7 @@ function topbar() {
       : `<button class="icon-btn" data-a="back" aria-label="Volver">←</button><b class="brand">${titles[route] || ''}</b>`}
     <div class="spacer"></div>
     <button class="avatars" data-a="go" data-r="group" aria-label="Grupo">${av}</button>
-    <button class="icon-btn" data-a="music" aria-label="${S.music ? 'Silenciar música' : 'Activar música'}">${S.music ? '🔊' : '🔇'}</button>
+    <button class="icon-btn" data-a="music" aria-label="Música">${Music.playing ? '🎶' : '🔇'}</button>
     <button class="icon-btn" data-a="go" data-r="memories" aria-label="Recuerdos">📸</button>
     <button class="icon-btn" data-a="settings" aria-label="Ajustes">${me().avatar}</button>
   </header>`;
@@ -273,6 +273,9 @@ function home() {
   ${notifCard()}
   <div class="sec-title"><h2>Accesos rápidos</h2></div>
   <div class="grid4">${quick.map(q => `<button class="tile" data-a="go" data-r="${q[0]}"><div class="tile-ic" style="background:${q[3]}">${q[1]}</div>${q[2]}</button>`).join('')}</div>
+
+  <div class="sec-title"><h2>🎶 Banda sonora</h2><span class="tiny">Juan Luis Guerra</span></div>
+  <div class="hscroll">${SOUNDTRACK.map((x, i) => `<button class="song-card" data-a="song" data-i="${i}" style="--h:${[350, 15, 200, 45][i]}"><span class="disc">💿</span><b>${esc(x.t)}</b><span class="tiny">${esc(x.a)}</span></button>`).join('')}</div>
 
   ${pending ? `<div class="sec-title"><h2>Próximo paso</h2><button data-a="go" data-r="wallet">Ver pagos</button></div>
   <div class="card"><div class="row"><div class="kind" style="background:#FFE7A8">${pending.emoji}</div>
@@ -799,7 +802,7 @@ function settingsSheet() {
     <label class="field"><span>Enlace del grupo de WhatsApp</span><input class="input" id="s-wa" value="${esc(S.whatsapp)}" placeholder="https://chat.whatsapp.com/…"></label>
     <label class="field"><span>Tipo de cambio (1 € =)</span><div class="row" style="gap:8px"><input class="input" id="s-usd" type="number" step="0.01" value="${S.fx.USD}"><span>$</span><input class="input" id="s-dop" type="number" step="1" value="${S.fx.DOP}"><span>RD$</span></div></label>
     <button class="btn ghost block" data-a="save-settings">Guardar ajustes</button>
-    <div class="grid2"><button class="btn ghost" data-a="notif">🔔 Notificaciones</button><button class="btn ghost" data-a="music">${S.music ? '🔇 Silenciar música' : '🔊 Activar música'}</button></div>
+    <div class="grid2"><button class="btn ghost" data-a="notif">🔔 Notificaciones</button><button class="btn ghost" data-a="music">${Music.playing ? '🔇 Silenciar música' : '🎶 Poner música'}</button></div>
     <button class="btn ghost block" style="margin-top:10px" data-a="credits">📷 Créditos de fotos</button>
     <div class="sec-title"><h2>Datos</h2></div>
     <div class="grid2"><button class="btn ghost" data-a="export">⬇️ Exportar</button><button class="btn ghost" data-a="import">⬆️ Importar</button></div>
@@ -845,36 +848,35 @@ function photoSheet(id) {
   async sh => { const el = $('[data-ph]', sh); el.style.backgroundImage = `url(${await loadPhoto(p.id)})`; });
 }
 
-// ---------- Intro music: «Notanico Merengue», Kevin MacLeod (CC BY 3.0), recortado a 46 s ----------
+// ---------- Banda sonora: Juan Luis Guerra (reproductor oficial de YouTube incrustado) ----------
+// No se puede alojar su audio (copyright); el embed oficial sí es legal. Vídeos verificados por oEmbed el 30/10/2026.
+const SOUNDTRACK = [
+  { id: 'WfMO_AETgB0', t: 'Bachata Rosa', a: 'Juan Luis Guerra 4.40' },
+  { id: 'v0ckuv1xBm0', t: 'Burbujas de Amor', a: 'Juan Luis Guerra 4.40' },
+  { id: '_4NBD3SqBwg', t: 'Bachata en Fukuoka', a: 'Juan Luis Guerra' },
+  { id: 'x3G4VFThbEg', t: 'La Bilirrubina', a: 'Juan Luis Guerra 4.40' },
+];
 const Music = (() => {
-  let ctx, gain, src, buf, playing = false;
-  async function start() {
-    if (playing || !S.music) return;
-    playing = true;
-    try {
-      if (navigator.audioSession) navigator.audioSession.type = 'playback'; // iPhone: suena aunque el móvil esté en silencio
-      ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
-      await ctx.resume();
-      if (!buf) buf = await ctx.decodeAudioData(await (await fetch('audio/merengue.m4a')).arrayBuffer());
-      if (!playing) return;
-      gain = ctx.createGain(); src = ctx.createBufferSource(); src.buffer = buf;
-      src.connect(gain).connect(ctx.destination);
-      const t = ctx.currentTime; gain.gain.setValueAtTime(0.0001, t); gain.gain.exponentialRampToValueAtTime(.8, t + 1.2);
-      src.onended = () => { playing = false; };
-      src.start();
-    } catch { playing = false; }
+  let cur = -1;
+  function play(i = 0) {
+    const s = SOUNDTRACK[i]; cur = i; stop(true);
+    const el = document.createElement('div'); el.id = 'yt'; el.className = 'yt';
+    el.innerHTML = `<div class="yt-bar"><span class="yt-eq"><i></i><i></i><i></i></span><div class="grow"><b>${esc(s.t)}</b><div class="tiny">${esc(s.a)}</div></div>
+      <a class="yt-ext" href="https://www.youtube.com/watch?v=${s.id}" target="_blank" rel="noopener" aria-label="Abrir en YouTube">↗</a><button data-a="song-next" aria-label="Siguiente canción">⏭</button><button data-a="music-off" aria-label="Silenciar">✕</button></div>
+      <iframe src="https://www.youtube.com/embed/${s.id}?autoplay=1&playsinline=1&rel=0&origin=${encodeURIComponent(location.origin)}" title="${esc(s.t)}" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+    document.body.append(el); syncBtn();
   }
-  function stop() {
-    playing = false;
-    if (!src || !gain) return;
-    const t = ctx.currentTime; gain.gain.cancelScheduledValues(t); gain.gain.setValueAtTime(gain.gain.value, t); gain.gain.exponentialRampToValueAtTime(0.0001, t + .4);
-    const s0 = src; setTimeout(() => { try { s0.stop(); } catch {} }, 450);
-  }
-  return { start, stop, get playing() { return playing; } };
+  function stop(silent) { document.getElementById('yt')?.remove(); if (!silent) { cur = -1; syncBtn(); } }
+  const syncBtn = () => document.querySelectorAll('.topbar [data-a=music]').forEach(b => (b.textContent = playing() ? '🎶' : '🔇'));
+  const playing = () => !!document.getElementById('yt');
+  return { play, stop, next: () => play((cur + 1) % SOUNDTRACK.length), get playing() { return playing(); }, get cur() { return cur; } };
 })();
-// Los navegadores solo dejan sonar audio tras un toque: arranca con el primer toque de cada apertura.
+// Canción de entrada: suena con el primer toque tras abrir la app (el móvil no deja reproducir sin un toque).
 let introDone = false;
-document.addEventListener('pointerdown', e => { if (!introDone && S.music && S.unlocked && !e.target.closest?.('[data-a=music]')) { introDone = true; Music.start(); } }, { capture: true });
+document.addEventListener('pointerdown', e => {
+  if (introDone || !S.music || !S.me || e.target.closest?.('[data-a^=music],[data-a^=song],#yt')) return;
+  introDone = true; Music.play(0);
+}, { capture: true });
 
 // ---------- Notificaciones ----------
 const canNotify = 'Notification' in window && 'serviceWorker' in navigator;
@@ -943,7 +945,7 @@ const A = {
   mapview: d => { sub.view = d.v; S.ui.sub = sub; save(); animateView(VIEWS[d.v]); document.querySelectorAll('.map-zoom button').forEach(b => b.classList.toggle('on', b.dataset.v === d.v)); },
   place: d => placeSheet(window.PLACES.find(p => p.id === d.id)),
   iconic: d => placeSheet(window.ICONIC.find(p => p.id === d.id), true),
-  credits: () => sheet(`<h2>📷 Créditos de fotos</h2><p class="muted">Fotos reales de Wikimedia Commons con licencia libre.</p>${Object.entries(window.CREDITS).map(([k, c]) => `<div class="exp"><div class="ic" style="background:center/cover url(img/${k}.jpg)"></div><div class="grow"><b>${esc(c.a)}</b><div class="tiny">${esc(c.l)}</div></div><a class="btn sm ghost" href="${esc(c.u)}" target="_blank" rel="noopener">Ver</a></div>`).join('')}<p class="tiny">Mapa: Natural Earth (dominio público). Música: «Notanico Merengue», Kevin MacLeod (incompetech.com), CC BY 3.0, recortada.</p>`),
+  credits: () => sheet(`<h2>📷 Créditos de fotos</h2><p class="muted">Fotos reales de Wikimedia Commons con licencia libre.</p>${Object.entries(window.CREDITS).map(([k, c]) => `<div class="exp"><div class="ic" style="background:center/cover url(img/${k}.jpg)"></div><div class="grow"><b>${esc(c.a)}</b><div class="tiny">${esc(c.l)}</div></div><a class="btn sm ghost" href="${esc(c.u)}" target="_blank" rel="noopener">Ver</a></div>`).join('')}<p class="tiny">Mapa: Natural Earth (dominio público). Música: vídeos oficiales de Juan Luis Guerra en YouTube (reproductor incrustado).</p>`),
   paid: d => {
     const p = window.MILESTONES[+d.p]; const x = S.paid[p.id] = S.paid[p.id] || {}; x[d.f] = !x[d.f];
     if (x[d.f]) { members().filter(m => m.fam === d.f && m.kind === 'adult').forEach(m => award(m.id, 25, 'pago hecho', `pay-${p.id}-${m.id}`)); confetti(14); }
@@ -1023,7 +1025,10 @@ const A = {
   ask: d => ask(SUGGEST[+d.i]),
   claude: () => { const last = [...S.chat].reverse().find(m => m.role === 'me'); copy(tripContext(last ? last.text : '¿Qué nos recomiendas para este viaje?'), 'Contexto copiado: pégalo en Claude ✨'); window.open('https://claude.ai/new', '_blank', 'noopener'); },
   'clear-chat': () => { S.chat = []; save(); render(); },
-  music: () => { S.music = !S.music; save(); if (S.music) { introDone = true; Music.start(); toast('🔊 Música activada'); } else { Music.stop(); toast('🔇 Música silenciada'); } closeSheet(); render(); },
+  music: () => { if (Music.playing) { Music.stop(); S.music = false; toast('🔇 Música silenciada'); } else { S.music = true; Music.play(Math.max(0, Music.cur)); } save(); closeSheet(true); },
+  'music-off': () => { Music.stop(); S.music = false; save(); toast('🔇 Silenciada. Vuelve con 🔇 arriba'); },
+  'song-next': () => Music.next(),
+  song: d => { S.music = true; save(); introDone = true; Music.play(+d.i); },
   notif: async () => {
     if (!canNotify) return toast('Este navegador no permite notificaciones');
     if (isIOS && !isStandalone()) return toast('Primero añade la app a la pantalla de inicio 📲');
