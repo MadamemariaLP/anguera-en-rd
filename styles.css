@@ -479,3 +479,6 @@ textarea.input { height: 90px; padding: 12px 14px; resize: none; }
 .welcome #pin { background: rgba(255, 255, 255, .92); color: #0B2A3C; border: 0; text-transform: uppercase; letter-spacing: .12em; font-weight: 800; text-align: center; }
 .welcome .btn { background: #fff; color: #0B2A3C; }
 .btn.wa { background: #25D366; color: #fff; text-decoration: none; }
+.fx-grid.three { grid-template-columns: repeat(3, 1fr); }
+.fx-grid.three div { background: var(--bg-2); border-radius: 12px; padding: 8px 10px; }
+.fx-grid.three b { display: block; font: 800 16px var(--font-display); }

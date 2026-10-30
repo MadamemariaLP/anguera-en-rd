@@ -10,7 +10,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 const uid = () => Math.random().toString(36).slice(2, 9);
 const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: n % 1 ? 2 : 0 }).format(n);
 const num = n => new Intl.NumberFormat('es-ES').format(Math.round(n));
-const CUR = { EUR: '€', USD: '$', DOP: 'RD$' };
+const CUR = { EUR: '€', USD: '$', DOP: 'RD$', CAD: 'CAD' };
 const DOW = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 const parseDay = d => new Date(d + 'T12:00:00');
 const KIND = {
@@ -92,12 +92,11 @@ const Sync = (() => {
     st.extra.forEach(x => put('member', x.id, x));
     st.removed.forEach(id => put('removed', id));
     if (st.whatsapp) put('setting', 'whatsapp', { v: st.whatsapp });
-    put('setting', 'fx', st.fx);
     return m;
   }
   function apply() {
     const st = { votes: {}, signups: {}, docs: {}, paid: {}, wish: {}, expenses: [], posts: [], log: [], bingo: {}, missionDone: {}, challenges: {},
-      dishes: [], songs: [], photos: [], names: {}, avatars: {}, famNames: {}, extra: [], removed: [], whatsapp: '', fx: { ...T.fx } };
+      dishes: [], songs: [], photos: [], names: {}, avatars: {}, famNames: {}, extra: [], removed: [], whatsapp: '' };
     const likes = [];
     for (const [k, raw] of synced) {
       const i = k.indexOf(SEP), kind = k.slice(0, i), id = k.slice(i + 1), d = JSON.parse(raw), [a, b] = id.split('|');
@@ -120,7 +119,7 @@ const Sync = (() => {
         case 'famname': st.famNames[id] = d.v; break;
         case 'member': st.extra.push(d); break;
         case 'removed': st.removed.push(id); break;
-        case 'setting': if (id === 'whatsapp') st.whatsapp = d.v; if (id === 'fx') st.fx = d; break;
+        case 'setting': if (id === 'whatsapp') st.whatsapp = d.v; break;
       }
     }
     likes.forEach(([t, w]) => { const j = t.indexOf(':'); const x = st[LIKES[t.slice(0, j)]]?.find(y => y.id === t.slice(j + 1)); if (x && !x.likes.includes(w)) x.likes.push(w); });
@@ -467,8 +466,8 @@ function home() {
   <div class="sec-title"><h2>Accesos rápidos</h2></div>
   <div class="grid4">${quick.map(q => `<button class="tile" data-a="go" data-r="${q[0]}"><div class="tile-ic" style="background:${q[3]}">${q[1]}</div>${q[2]}</button>`).join('')}</div>
 
-  <div class="sec-title"><h2>🎶 Banda sonora</h2><span class="tiny">${SOUNDTRACK.length} temazos</span></div>
-  <div class="hscroll">${SOUNDTRACK.map((x, i) => `<button class="song-card" data-a="song" data-i="${i}" style="--h:${[350, 15, 200, 45][i]}"><span class="disc">💿</span><b>${esc(x.t)}</b><span class="tiny">${esc(x.a)}</span></button>`).join('')}</div>
+  <div class="sec-title"><h2>🎶 Banda sonora</h2><button data-a="go" data-r="tastes" data-sub="music">＋ Añadir</button></div>
+  <div class="hscroll">${playlist().map((x, i) => `<button class="song-card" data-a="song" data-i="${i}" style="--h:${[350, 15, 200, 45, 120, 280, 170, 320][i % 8]}"><span class="disc">${x.id ? '💿' : '🔎'}</span><b>${esc(x.t)}</b><span class="tiny">${esc(x.a)}</span></button>`).join('')}</div>
 
   ${pending ? `<div class="sec-title"><h2>Próximo paso</h2><button data-a="go" data-r="wallet">Ver pagos</button></div>
   <div class="card"><div class="row"><div class="kind" style="background:#FFE7A8">${pending.emoji}</div>
@@ -627,12 +626,11 @@ function explore() {
   <div class="hscroll hist" style="margin-top:10px">${window.HISTORY[sub.hist || (isMtl() ? 'ca' : 'rd')].map(h => `<div class="hcard"><span class="e">${h[0]}</span><b>${esc(h[1])}</b><p>${esc(h[2])}</p></div>`).join('')}</div>
   <div class="sec-title"><h2>💡 Tips de locales</h2></div>
   <div class="card fx">
-    <div class="row"><span style="font-size:24px">💱</span><b class="grow">Cambio de moneda</b><span class="tiny">editable</span></div>
-    <div class="fx-grid"><label><span class="tiny">1 € =</span><input class="input" id="fx-usd" type="number" step="0.01" inputmode="decimal" value="${S.fx.USD}"><b>$</b></label>
-    <label><span class="tiny">1 € =</span><input class="input" id="fx-dop" type="number" step="1" inputmode="decimal" value="${S.fx.DOP}"><b>RD$</b></label></div>
+    <div class="row"><span style="font-size:24px">💱</span><b class="grow">Cambio de moneda</b><span class="tiny">${S.fxDate ? 'hoy · mercado' : 'aprox.'}</span></div>
+    <div class="fx-grid three"><div><span class="tiny">1 € =</span><b>${S.fx.USD.toFixed(3).replace('.', ',')} $</b></div><div><span class="tiny">1 € =</span><b>${num(S.fx.DOP)} RD$</b></div><div><span class="tiny">1 € =</span><b>${(S.fx.CAD || 1.56).toFixed(2).replace('.', ',')} CAD</b></div></div>
     <label class="field" style="margin:10px 0 4px"><span>Conversor rápido</span><input class="input" id="fx-in" type="number" inputmode="decimal" placeholder="Importe en €"></label>
-    <div class="tiny" id="fx-out">Escribe un importe en € para ver $ y RD$.</div>
-    <p class="tiny" style="margin-bottom:0">El tipo se usa en Wallet para pasar gastos en $ o RD$ a €. Revisadlo antes de viajar.</p></div>
+    <div class="tiny" id="fx-out">Escribe un importe en € para ver $, RD$ y CAD.</div>
+    <p class="tiny" style="margin-bottom:0">${S.fxDate ? `Tipo de mercado actualizado el ${new Date(S.fxDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} (ExchangeRate-API, el mismo que ves en Google). Revolut y las casas de cambio aplican un pequeño margen.` : 'Sin conexión: tipo aproximado. Se actualiza solo al abrir la app con internet.'} Se usa en Wallet para pasar gastos a €.</p></div>
   <div class="card">${window.TIPS.map(t => `<div class="check"><span style="font-size:22px">${t[0]}</span><span class="grow"><b>${esc(t[1])}</b><div class="tiny" style="color:var(--ink-2)">${esc(t[2])}</div></span></div>`).join('')}</div>`;
 }
 function islandMap(layer) {
@@ -675,10 +673,7 @@ function mtlMap() {
   </svg>`;
 }
 after.explore = () => {
-  const conv = () => { const v = parseFloat($('#fx-in').value); $('#fx-out').innerHTML = v > 0 ? `<b>${eur(v)}</b> = <b>${num(v * S.fx.USD)} $</b> = <b>${num(v * S.fx.DOP)} RD$</b>` : 'Escribe un importe en € para ver $ y RD$.'; };
-  const setFx = () => { S.fx.USD = parseFloat($('#fx-usd').value) || T.fx.USD; S.fx.DOP = parseFloat($('#fx-dop').value) || T.fx.DOP; save(); conv(); };
-  $('#fx-usd')?.addEventListener('change', () => { setFx(); toast('Tipo de cambio guardado ✓'); });
-  $('#fx-dop')?.addEventListener('change', () => { setFx(); toast('Tipo de cambio guardado ✓'); });
+  const conv = () => { const v = parseFloat($('#fx-in').value); $('#fx-out').innerHTML = v > 0 ? `<b>${eur(v)}</b> = <b>${num(v * S.fx.USD)} $</b> = <b>${num(v * S.fx.DOP)} RD$</b> = <b>${num(v * (S.fx.CAD || 1.56))} CAD</b>` : 'Escribe un importe en € para ver $, RD$ y CAD.'; };
   $('#fx-in')?.addEventListener('input', conv);
 };
 function animateView(to) {
@@ -781,7 +776,7 @@ function wallet() {
         <span class="${r === 0 ? '' : d > 0 ? 'neg' : 'pos'}">${r === 0 ? 'sin apuntar' : Math.abs(d) < 1 ? 'clavado ✓' : (d > 0 ? '+' : '−') + eur(Math.abs(Math.round(d)))}</span></div></div>`; }).join('')}</div>
       <div class="sec-title"><h2>Coste por familia (plan)</h2></div>
       <div class="card">${fams().map(f => `<div class="rank"><span style="font-size:22px">${f.emoji}</span><span class="grow"><b>${esc(f.name)}</b><div class="tiny">${members().filter(m => m.fam === f.id).length} personas</div></span><b>~${eur(window.BUDGET.families[f.id])}</b></div>`).join('')}
-      <p class="tiny">El "real" suma lo que apuntáis en Gastos con su partida. Los gastos del día a día van a "Gastos en destino". Tipo de cambio 1 € ≈ ${S.fx.USD} $.</p></div>`;
+      <p class="tiny">El "real" suma lo que apuntáis en Gastos con su partida. Los gastos del día a día van a "Gastos en destino". Tipo de cambio de hoy: 1 € ≈ ${S.fx.USD.toFixed(2).replace(".", ",")} $.</p></div>`;
   }
   if (t === 'pay') return head + `<div style="margin-top:14px">${window.MILESTONES.map((p, pi) => { const n = fams().filter(f => S.paid[p.id]?.[f.id]).length; return `<div class="card">
     <div class="row"><div class="kind" style="background:#FFE7A8">${p.emoji}</div><div class="grow"><b>${pi + 1}. ${esc(p.title)}</b><div class="tiny">${esc(p.detail)}</div></div><b>${esc(p.amount)}</b></div>
@@ -1012,7 +1007,7 @@ function expenseSheet(photo, line) {
     <label class="field"><span>Concepto</span><input class="input" id="e-t" value="${L && L.id !== 'destino' ? esc(L.cat) : ''}" placeholder="Súper, luz de la villa, propinas…"></label>
     <label class="field"><span>Partida del presupuesto</span><select class="input" id="e-l">${window.BUDGET.lines.map(l => `<option value="${l.id}" ${(line || 'destino') === l.id ? 'selected' : ''}>${l.emoji} ${esc(l.cat)}</option>`).join('')}</select></label>
     <div class="row" style="gap:8px"><label class="field grow"><span>Importe</span><input class="input" id="e-a" type="number" inputmode="decimal" step="0.01"></label>
-    <label class="field" style="width:110px"><span>Moneda</span><select class="input" id="e-c"><option>EUR</option><option>USD</option><option>DOP</option></select></label></div>
+    <label class="field" style="width:110px"><span>Moneda</span><select class="input" id="e-c"><option>EUR</option><option>USD</option><option>DOP</option><option>CAD</option></select></label></div>
     <label class="field"><span>Categoría</span><div class="pickers" id="e-cat">${CATS.map((c, i) => `<button type="button" class="${i === 0 ? 'on' : ''}" data-v="${c[0]}">${c[1]} ${c[0]}</button>`).join('')}</div></label>
     <label class="field"><span>Pagó</span><select class="input" id="e-p">${ms.map(m => `<option value="${m.id}" ${m.id === S.me ? 'selected' : ''}>${m.avatar} ${esc(m.name)}</option>`).join('')}</select></label>
     <label class="field"><span>Se reparte entre</span><div class="pickers" id="e-mode"><button type="button" class="on" data-v="all">Todos (${ms.length}, por cabeza)</button><button type="button" data-v="adults">Solo adultos</button><button type="button" data-v="mine">Mi familia</button><button type="button" data-v="custom">Elegir…</button></div></label>
@@ -1077,7 +1072,7 @@ function addSheet(kind) {
   sheet(`<h2>${food ? '🍽️ Plato favorito' : '🎶 Subir canción'}</h2>
     <label class="field"><span>${food ? 'Plato' : 'Canción'}</span><input class="input" id="t-a" placeholder="${food ? 'Pescado con coco, macarrones, tostones…' : 'Título'}"></label>
     <label class="field"><span>${food ? 'Nota (alergias, "sin picante"…)' : 'Artista'}</span><input class="input" id="t-b"></label>
-    ${food ? '' : '<label class="field"><span>Enlace de Spotify/YouTube (opcional)</span><input class="input" id="t-u" type="url" placeholder="https://open.spotify.com/track/…"></label>'}
+    ${food ? '' : '<label class="field"><span>Enlace de YouTube (para que suene en la banda sonora) o de Spotify</span><input class="input" id="t-u" type="url" placeholder="https://youtu.be/…"></label>'}
     <label class="field"><span>Para</span><div class="pickers" id="t-for"><button type="button" class="${me().kind === 'adult' ? 'on' : ''}" data-v="adult">😎 Adultos</button><button type="button" class="${me().kind !== 'adult' ? 'on' : ''}" data-v="kid">🧸 Peques</button></div></label>
     <label class="field"><span>¿De quién es?</span><select class="input" id="t-by">${members().map(m => `<option value="${m.id}" ${m.id === S.me ? 'selected' : ''}>${m.avatar} ${esc(m.name)}</option>`).join('')}</select></label>
     <p class="tiny" style="margin-top:-6px">Los adultos pueden subir lo de sus peques.</p>
@@ -1105,10 +1100,17 @@ const SOUNDTRACK = [ // se irá ampliando con los gustos del grupo
   { id: '8_QY5gFQUTg', t: 'Obsesión', a: 'Aventura ft. Judy Santos' },
   { id: 'VUIgT-E4IS0', t: 'Dame Hombro', a: 'Bulin 47 x Kevin Wai' },
 ];
+// Las canciones que el grupo sube en Gustos se añaden a la banda sonora.
+// Con enlace de YouTube suenan dentro de la app; sin él, abren la búsqueda en YouTube.
+const ytId = u => (String(u || '').match(/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/)([\w-]{11})/) || [])[1];
+const playlist = () => [...SOUNDTRACK, ...S.songs.slice().sort((a, b) => b.likes.length - a.likes.length)
+  .map(x => ({ id: ytId(x.url), t: x.title, a: (x.artist || '') + ' · de ' + mem(x.by).name, q: `${x.title} ${x.artist || ''}`, group: true }))];
 const Music = (() => {
   let cur = -1;
   function play(i = 0) {
-    const s = SOUNDTRACK[i]; cur = i; stop(true);
+    const s = playlist()[i]; if (!s) return;
+    if (!s.id) { window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(s.q), '_blank', 'noopener'); return; }
+    cur = i; stop(true);
     const el = document.createElement('div'); el.id = 'yt'; el.className = 'yt';
     el.innerHTML = `<div class="yt-bar"><span class="yt-eq"><i></i><i></i><i></i></span><div class="grow"><b>${esc(s.t)}</b><div class="tiny">${esc(s.a)}</div></div>
       <a class="yt-ext" href="https://www.youtube.com/watch?v=${s.id}" target="_blank" rel="noopener" aria-label="Abrir en YouTube">↗</a><button data-a="song-next" aria-label="Siguiente canción">⏭</button><button data-a="music-off" aria-label="Silenciar">✕</button></div>
@@ -1118,7 +1120,8 @@ const Music = (() => {
   function stop(silent) { document.getElementById('yt')?.remove(); if (!silent) { cur = -1; syncBtn(); } }
   const syncBtn = () => document.querySelectorAll('.topbar [data-a=music]').forEach(b => (b.textContent = playing() ? '🎶' : '🔇'));
   const playing = () => !!document.getElementById('yt');
-  return { play, stop, next: () => play((cur + 1) % SOUNDTRACK.length), get playing() { return playing(); }, get cur() { return cur; } };
+  const next = () => { const L = playlist(); for (let k = 1; k <= L.length; k++) { const j = (cur + k) % L.length; if (L[j].id) return play(j); } };
+  return { play, stop, next, get playing() { return playing(); }, get cur() { return cur; } };
 })();
 // Canción de entrada: suena con el primer toque tras abrir la app (el móvil no deja reproducir sin un toque).
 let introDone = false;
@@ -1151,6 +1154,8 @@ async function notify(key, title, body, url = './#home') {
 // Recordatorios que se calculan al abrir la app (los avisos con la app cerrada llegan con el backend, fase 2).
 function checkReminders() {
   if (!S.me) return;
+  const w = window.LEXICON[Math.floor(Date.now() / 864e5) % window.LEXICON.length];
+  notify('word-' + new Date().toISOString().slice(0, 10), `🇩🇴 Palabra del día: ${w[0]}`, w[1], './#home');
   const days = Math.ceil((tripStart - now()) / 864e5);
   if ([200, 100, 60, 30, 14, 7, 3, 1].includes(days)) notify('cd-' + days, `🌴 ¡Quedan ${days} días!`, days > 7 ? 'RD Trip Club cuenta los días contigo.' : 'Revisa la checklist y la maleta 🧳', './#trip');
   const myFam = me().fam;
@@ -1328,7 +1333,18 @@ document.addEventListener('input', e => { const k = e.target.dataset?.draft; if 
 
 function applyTheme() { const r = document.documentElement; if (S.theme === 'auto') r.removeAttribute('data-theme'); else r.dataset.theme = S.theme; }
 
+// Tipo de cambio de mercado (una vez al día). Google y Revolut no tienen API pública; ExchangeRate-API da el mismo tipo medio.
+async function updateFx() {
+  if (S.fxDate && Date.now() - S.fxDate < 6 * 36e5) return;
+  try {
+    const d = await (await fetch('https://open.er-api.com/v6/latest/EUR')).json();
+    if (d.result !== 'success') return;
+    S.fx = { USD: d.rates.USD, DOP: d.rates.DOP, CAD: d.rates.CAD }; S.fxDate = Date.now(); save();
+    if (route === 'explore' || route === 'wallet') safeRender();
+  } catch { /* sin conexión: se queda el último tipo */ }
+}
 render();
+updateFx();
 Sync.start();
 checkReminders();
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});

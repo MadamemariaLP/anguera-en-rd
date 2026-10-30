@@ -9,7 +9,7 @@ window.TRIP = {
   start: '2027-08-13T14:50:00+02:00', // salida TS0261 desde BCN T2
   end: '2027-08-26',
   nights: 12,
-  fx: { USD: 1.17, DOP: 70 }, // 1 € = x (tipo supuesto del PDF; DOP aprox.)
+  fx: { USD: 1.12, DOP: 67.6, CAD: 1.56 }, // 1 € = x (respaldo sin conexión; la app descarga el tipo de mercado del día)
   whatsapp: '', // enlace del grupo de WhatsApp (se pega en Ajustes)
 };
 
