@@ -608,6 +608,9 @@ function explore() {
   ${layer !== 'ours' && !isMtl() ? `<div class="sec-title"><h2>Icónicos de RD</h2><span class="tiny">toca para ver</span></div>
   <div class="hscroll">${window.ICONIC.map(p => `<button class="icard" data-a="iconic" data-id="${p.id}" style="background-image:linear-gradient(transparent 40%,rgba(0,0,0,.65)),url(${img(p.img)})">
     ${p.far ? '<span class="chip far">otro viaje</span>' : '<span class="chip near">excursión</span>'}<b>${p.emoji} ${esc(p.name)}</b></button>`).join('')}</div>` : ''}
+  <div class="sec-title"><h2>📜 Historia y curiosidades</h2></div>
+  <div class="seg">${[['rd', '🇩🇴 República Dominicana'], ['ca', '🍁 Canadá y Montreal']].map(x => `<button class="${(sub.hist || (isMtl() ? 'ca' : 'rd')) === x[0] ? 'on' : ''}" data-a="sub" data-k="hist" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>
+  <div class="hscroll hist" style="margin-top:10px">${window.HISTORY[sub.hist || (isMtl() ? 'ca' : 'rd')].map(h => `<div class="hcard"><span class="e">${h[0]}</span><b>${esc(h[1])}</b><p>${esc(h[2])}</p></div>`).join('')}</div>
   <div class="seg" style="margin-top:16px">${[['all', '🌎 Todo'], ['ltr', '🏝️ Las Terrenas'], ['puj', '🎸 Punta Cana'], ['yul', '🍁 Montreal']].map(x => `<button class="${zf === x[0] ? 'on' : ''}" data-a="sub" data-k="zone" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>
   <div class="pickers" style="margin-top:10px">${[['all', 'Todo'], ['playa', '🏖️ Playas'], ['excursion', '🧭 Excursiones'], ['comida', '🍽️ Comer'], ['fiesta', '🎉 Bares'], ['compras', '🛍️ Compras'], ['kids', '🧸 Peques']].map(x => `<button class="${cf === x[0] ? 'on' : ''}" data-a="sub" data-k="cat" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>
   <div style="margin-top:12px">${places.map(card).join('')}</div>
@@ -617,9 +620,6 @@ function explore() {
     <a class="btn sm ghost" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l.q)}" target="_blank" rel="noopener" aria-label="Abrir en Maps">📍</a></div>`).join('')}
     <p class="tiny">Revisad horarios y reseñas recientes en Maps antes de ir: en 2027 algo puede haber cambiado.</p></div>` : ''}
   ${!places.length && !locals.length ? '<div class="card muted">Nada por aquí con esos filtros.</div>' : ''}
-  <div class="sec-title"><h2>📜 Historia y curiosidades</h2></div>
-  <div class="seg">${[['rd', '🇩🇴 República Dominicana'], ['ca', '🍁 Canadá y Montreal']].map(x => `<button class="${(sub.hist || (isMtl() ? 'ca' : 'rd')) === x[0] ? 'on' : ''}" data-a="sub" data-k="hist" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>
-  <div class="hscroll hist" style="margin-top:10px">${window.HISTORY[sub.hist || (isMtl() ? 'ca' : 'rd')].map(h => `<div class="hcard"><span class="e">${h[0]}</span><b>${esc(h[1])}</b><p>${esc(h[2])}</p></div>`).join('')}</div>
   <div class="sec-title"><h2>💡 Tips de locales</h2></div>
   <div class="card fx">
     <div class="row"><span style="font-size:24px">💱</span><b class="grow">Cambio de moneda</b><span class="tiny">${S.fxDate ? 'hoy · mercado' : 'aprox.'}</span></div>
