@@ -189,11 +189,15 @@ const Sync = (() => {
       setStatus('connecting');
       client = client || window.supabase.createClient(window.SUPA.url, window.SUPA.key, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'rdtc-auth' } });
       let { data: { session } } = await client.auth.getSession();
+      if (session && (await client.auth.getUser()).error) { await client.auth.signOut({ scope: 'local' }).catch(() => {}); session = null; } // usuario borrado en el servidor
       if (!session) { const r = await client.auth.signInAnonymously(); if (r.error) throw r.error; session = r.data.session; }
       uidSelf = session.user.id;
       const { data: ok, error } = await client.rpc('is_device');
       if (error) throw error;
-      if (!ok) { S.joined = false; save(); setStatus('locked'); render(); return; }
+      if (!ok) { // sesión cerrada o revocada: PIN de nuevo y volver a elegir perfil
+        S.joined = false; S.me = null; synced = new Map(); queue = []; uploads = []; base = null; persist();
+        save(); setStatus('locked'); render(); return;
+      }
       if (!S.joined) { S.joined = true; save(); }
       await pull(); subscribe(); setMember();
     } catch { setStatus('offline'); }
