@@ -28,9 +28,12 @@ const defaults = () => ({
   log: [], bingo: {}, missionDone: {}, challenges: {}, photos: [], dishes: [], songs: [], chat: [],
   settleByFam: true, whatsapp: '', fx: { ...T.fx },
   extra: [], removed: [], pins: {}, ui: { route: 'home', sub: {} }, drafts: {},
+  music: true, notified: {}, mig: 0,
 });
 let S;
 try { S = Object.assign(defaults(), JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { S = defaults(); }
+// Migraciones: datos que el grupo ya confirmó y deben aparecer en todos los móviles.
+if (S.mig < 2) { S.paid.pay1 = Object.fromEntries(window.FAMILIES.map(f => [f.id, true])); S.mig = 2; }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { toast('No se pudo guardar (almacenamiento lleno)'); } };
 
 // Photos live in IndexedDB (dataURLs pesan demasiado para localStorage).
@@ -206,13 +209,14 @@ function render() {
 const after = {};
 
 function topbar() {
-  const av = members().slice(0, 4).map(m => `<span>${m.avatar}</span>`).join('');
+  const av = route === 'home' ? members().slice(0, 4).map(m => `<span>${m.avatar}</span>`).join('') : '';
   const titles = { trip: 'Mi viaje', explore: 'Explora', wallet: 'Wallet', games: 'Juegos', group: 'Grupo', memories: 'Recuerdos', ai: 'Coco AI', tastes: 'Gustos' };
   return `<header class="topbar">
     ${route === 'home' ? '<button class="brand" data-a="go" data-r="home"><span class="brand-mark">🌴</span>RD TRIP CLUB</button>'
       : `<button class="icon-btn" data-a="back" aria-label="Volver">←</button><b class="brand">${titles[route] || ''}</b>`}
     <div class="spacer"></div>
     <button class="avatars" data-a="go" data-r="group" aria-label="Grupo">${av}</button>
+    <button class="icon-btn" data-a="music" aria-label="${S.music ? 'Silenciar música' : 'Activar música'}">${S.music ? '🔊' : '🔇'}</button>
     <button class="icon-btn" data-a="go" data-r="memories" aria-label="Recuerdos">📸</button>
     <button class="icon-btn" data-a="settings" aria-label="Ajustes">${me().avatar}</button>
   </header>`;
@@ -272,6 +276,7 @@ function home() {
     ${n.it.optional ? `<span class="chip">🙋 ${(S.signups[n.it.id] || []).length} apuntados</span>` : ''}</div>
     <div class="big-emoji">${KIND[n.it.kind][0]}</div></button>` : ''}
 
+  ${notifCard()}
   <div class="sec-title"><h2>Accesos rápidos</h2></div>
   <div class="grid4">${quick.map(q => `<button class="tile" data-a="go" data-r="${q[0]}"><div class="tile-ic" style="background:${q[3]}">${q[1]}</div>${q[2]}</button>`).join('')}</div>
 
@@ -324,17 +329,20 @@ function trip() {
   </div>
   <div class="seg">${[['plan', '🗓️ Itinerario'], ['flights', '✈️ Vuelos'], ['stays', '🏡 Alojamiento'], ['check', '✅ Checklist']].map(x => `<button class="${t === x[0] ? 'on' : ''}" data-a="sub" data-k="trip" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>`;
 
-  if (t === 'flights') return head + `<div style="margin-top:14px">${window.FLIGHTS.map(f => `<div class="pass">
-    <div class="top"><div><div class="iata">${f.from}</div><div class="city">${esc(f.fromCity)}</div></div><div class="plane"><span>✈</span></div>
+  if (t === 'flights') { const FS = window.FLIGHTS_STATUS; return head + `<div class="card bought" style="margin-top:14px"><div class="row"><span style="font-size:30px">✅</span><div class="grow"><b>Vuelos comprados · ${esc(FS.airline)}</b><div class="tiny">${esc(FS.note)}</div></div></div></div>
+    ${window.FLIGHTS.map(f => `<div class="pass">
+    <div class="pass-head"><span>${esc(f.leg)}</span><b>✈ ${esc(f.no)}</b><span class="chip ok">Comprado</span></div>
+    <div class="top"><div><div class="iata">${f.from}</div><div class="city">${esc(f.fromCity)}</div></div><div class="plane"><span>✈</span><small>${esc(f.dur)}</small></div>
     <div style="text-align:right"><div class="iata">${f.to}</div><div class="city">${esc(f.toCity)}</div></div></div>
     <div class="bottom"><div><span class="tiny">Fecha</span><b>${esc(f.date)}</b></div><div><span class="tiny">Sale</span><b>${esc(f.dep)}</b></div><div><span class="tiny">Llega</span><b>${esc(f.arr)}</b></div></div>
     <div class="tiny" style="padding:0 18px 14px">${esc(f.note)}</div></div>`).join('')}
-    <div class="card" style="margin-top:12px"><b>🧠 Por qué vía Montreal</b><p class="muted" style="margin:6px 0 0">16 × 720 € = 11.520 € + 800 $ de hotel ≈ 12.205 €. Vía Madrid serían +1.000 € × 16 = 16.000 €. Ahorro ~3.800 € para el grupo.</p></div>
-    <div class="card"><b>🍁 Recordatorio</b><p class="muted" style="margin:6px 0 0">Para pasar por Canadá cada viajero necesita su eTA. Márcalo en ✅ Checklist.</p></div></div>`;
+    <div class="card" style="margin-top:12px"><b>🍁 eTA de Canadá</b><p class="muted" style="margin:6px 0 0">Hacemos escala en Montreal a la ida y a la vuelta: cada viajero (peques incluidos) necesita su eTA. Márcalo en ✅ Checklist.</p></div>
+    <div class="card"><b>🧠 Por qué vía Montreal</b><p class="muted" style="margin:6px 0 0">16 × 720 € = 11.520 € + 800 $ de hotel ≈ 12.205 €. Vía Madrid serían +1.000 € × 16 = 16.000 €. Ahorro ~3.800 € para el grupo.</p></div></div>`; }
 
   if (t === 'stays') {
     const p1 = window.POLLS[0];
     return head + `<div style="margin-top:14px">${window.STAYS.map(s => `<div class="card">
+      ${s.img ? `<div class="stay-img" style="background-image:url(img/${s.img}.jpg)"><span>${esc(s.imgCap)}</span></div>` : ''}
       <div class="row"><div class="kind" style="background:${z[s.zone].color}22">${z[s.zone].emoji}</div><div class="grow"><b>${esc(s.name)}</b><div class="tiny">${esc(s.dates)}</div></div>
       <span class="chip">${esc(s.status)}</span></div>
       <div style="margin-top:8px;font-weight:800">${esc(s.price)}</div>
@@ -386,43 +394,80 @@ function pollCard(p) {
 }
 
 // ---------- EXPLORE ----------
+const M = window.MAP;
+const proj = (lat, lon) => [(lon - M.lon0) * M.k, (M.lat0 - lat) * M.ky];
+const VIEWS = { all: [-4, -8, M.w + 30, M.h + 34], ltr: [258, 30, 84, 43], puj: [284, 72, 108, 60] };
+const pinScale = vb => Math.max(.38, vb[2] / VIEWS.all[2]);
+const img = k => k ? `img/${k}.jpg` : '';
 function explore() {
-  const zf = sub.zone || 'all', cf = sub.cat || 'all';
-  const list = window.PLACES.filter(p => (zf === 'all' || p.zone === zf) && (cf === 'all' || p.cat === cf || (cf === 'kids' && p.kids)));
+  const zf = sub.zone || 'all', cf = sub.cat || 'all', layer = sub.layer || 'ours';
   const zc = Object.fromEntries(window.ZONES.map(z => [z.id, z.color]));
-  return `<div class="page-head"><h1>Explora RD</h1><p>Zonas, playas, excursiones y dónde comer.</p></div>
-  <div class="mapwrap" style="margin-top:12px">${drMap()}</div>
-  <div class="seg" style="margin-top:14px">${[['all', '🌎 Todo'], ['ltr', '🏝️ Las Terrenas'], ['puj', '🎸 Punta Cana'], ['yul', '🍁 Montreal']].map(x => `<button class="${zf === x[0] ? 'on' : ''}" data-a="sub" data-k="zone" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>
-  <div class="pickers" style="margin-top:10px">${[['all', 'Todo'], ['playa', '🏖️ Playas'], ['excursion', '🧭 Excursiones'], ['comida', '🍽️ Comer'], ['fiesta', '🎉 Fiesta'], ['kids', '🧸 Peques']].map(x => `<button class="${cf === x[0] ? 'on' : ''}" data-a="sub" data-k="cat" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>
-  <div style="margin-top:12px">${list.map(p => { const w = S.wish[p.id] || []; const on = w.includes(S.me); return `<div class="card place">
-    <div class="ic" style="background:${zc[p.zone]}22">${p.emoji}</div>
-    <div class="grow"><h4>${esc(p.name)}</h4><div class="muted" style="font-size:13.5px;margin:3px 0 8px">${esc(p.desc)}</div>
+  const places = window.PLACES.filter(p => (zf === 'all' || p.zone === zf) && (cf === 'all' || p.cat === cf || (cf === 'kids' && p.kids)));
+  const locals = window.LOCALS.filter(p => (zf === 'all' || p.zone === zf) && (cf === 'all' || p.cat === cf || (cf === 'kids' && p.kids)));
+  const card = p => { const w = S.wish[p.id] || []; const on = w.includes(S.me); return `<div class="card pcard">
+    ${p.img ? `<button class="pimg" data-a="place" data-id="${p.id}" style="background-image:url(${img(p.img)})"><span class="chip">${p.emoji} ${esc(window.ZONES.find(z => z.id === p.zone)?.short || '')}</span></button>` : ''}
+    <div class="pbody"><h4>${esc(p.name)}</h4><div class="muted" style="font-size:13.5px;margin:3px 0 8px">${esc(p.desc)}</div>
     <div class="row" style="gap:8px"><a class="btn sm ghost" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.q)}" target="_blank" rel="noopener">📍 Maps</a>
-    <button class="btn sm ${on ? 'coral' : 'ghost'}" data-a="wish" data-id="${p.id}">${on ? '❤️' : '🤍'} ${w.length || ''} Me apetece</button></div></div></div>`; }).join('') || '<div class="card muted">Nada por aquí con esos filtros.</div>'}</div>
-  <p class="tiny" style="margin-top:12px">Las ideas sin fecha se convierten en plan cuando el grupo vota. Los más deseados aparecen primero en Coco AI.</p>`;
+    <button class="btn sm ${on ? 'coral' : 'ghost'}" data-a="wish" data-id="${p.id}">${on ? '❤️' : '🤍'} ${w.length || ''} Me apetece</button></div></div></div>`; };
+  return `<div class="page-head"><h1>Explora RD</h1><p>Toda la isla: dónde estaremos y sus sitios icónicos.</p></div>
+  <div class="mapwrap" style="margin-top:12px">${islandMap(layer)}
+    <div class="map-zoom">${[['all', '🏝️ Isla'], ['ltr', 'Samaná'], ['puj', 'Punta Cana']].map(x => `<button class="${(sub.view || 'all') === x[0] ? 'on' : ''}" data-a="mapview" data-v="${x[0]}">${x[1]}</button>`).join('')}</div></div>
+  <div class="seg" style="margin-top:10px">${[['ours', '📍 Donde estaremos'], ['iconic', '⭐ Icónicos'], ['both', '🗺️ Todo']].map(x => `<button class="${layer === x[0] ? 'on' : ''}" data-a="sub" data-k="layer" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>
+  ${layer !== 'ours' ? `<div class="sec-title"><h2>Icónicos de RD</h2><span class="tiny">toca para ver</span></div>
+  <div class="hscroll">${window.ICONIC.map(p => `<button class="icard" data-a="iconic" data-id="${p.id}" style="background-image:linear-gradient(transparent 40%,rgba(0,0,0,.65)),url(${img(p.img)})">
+    ${p.far ? '<span class="chip far">otro viaje</span>' : '<span class="chip near">excursión</span>'}<b>${p.emoji} ${esc(p.name)}</b></button>`).join('')}</div>` : ''}
+  <div class="seg" style="margin-top:16px">${[['all', '🌎 Todo'], ['ltr', '🏝️ Las Terrenas'], ['puj', '🎸 Punta Cana'], ['yul', '🍁 Montreal']].map(x => `<button class="${zf === x[0] ? 'on' : ''}" data-a="sub" data-k="zone" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>
+  <div class="pickers" style="margin-top:10px">${[['all', 'Todo'], ['playa', '🏖️ Playas'], ['excursion', '🧭 Excursiones'], ['comida', '🍽️ Comer'], ['fiesta', '🎉 Bares'], ['compras', '🛍️ Compras'], ['kids', '🧸 Peques']].map(x => `<button class="${cf === x[0] ? 'on' : ''}" data-a="sub" data-k="cat" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>
+  <div style="margin-top:12px">${places.map(card).join('')}</div>
+  ${locals.length ? `<div class="sec-title"><h2>⭐ Recomendaciones locales</h2><span class="tiny">verificadas oct 2026</span></div>
+  <div class="card">${locals.map(l => `<div class="exp"><div class="ic" style="background:${zc[l.zone]}22">${l.emoji}</div>
+    <div class="grow"><b>${esc(l.name)}</b> <span class="tiny">${l.p}${l.kids ? ' · 🧸' : ' · solo adultos'}${l.big ? ' · mesa grande' : ''}</span><div class="tiny" style="color:var(--ink-2)">${esc(l.desc)}</div></div>
+    <a class="btn sm ghost" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l.q)}" target="_blank" rel="noopener" aria-label="Abrir en Maps">📍</a></div>`).join('')}
+    <p class="tiny">Revisad horarios y reseñas recientes en Maps antes de ir: en 2027 algo puede haber cambiado.</p></div>` : ''}
+  ${!places.length && !locals.length ? '<div class="card muted">Nada por aquí con esos filtros.</div>' : ''}
+  <div class="sec-title"><h2>💡 Tips de locales</h2></div>
+  <div class="card">${window.TIPS.map(t => `<div class="check"><span style="font-size:22px">${t[0]}</span><span class="grow"><b>${esc(t[1])}</b><div class="tiny" style="color:var(--ink-2)">${esc(t[2])}</div></span></div>`).join('')}</div>`;
 }
-function drMap() {
-  // República Dominicana estilizada (aprox.), con la ruta del viaje.
-  const pins = [
-    { x: 238, y: 60, c: '#00B4C5', t: 'Las Terrenas', z: 'ltr' }, { x: 318, y: 124, c: '#FFB627', t: 'Hard Rock · PUJ', z: 'puj' },
-    { x: 232, y: 74, c: '#1DB980', t: 'El Limón', s: 1 }, { x: 222, y: 90, c: '#1DB980', t: 'Los Haitises', s: 1 },
-    { x: 286, y: 160, c: '#1DB980', t: 'Saona', s: 1 }, { x: 180, y: 156, c: '#8AA0AB', t: 'Santo Domingo', s: 1 },
-  ];
-  return `<svg viewBox="0 0 360 210" role="img" aria-label="Mapa de la ruta por República Dominicana">
-    <g opacity=".25" stroke="#fff" fill="none"><path d="M0 30 Q 30 24 60 30 T 120 30"/><path d="M200 196 Q 230 190 260 196 T 320 196"/><path d="M10 120 Q 30 114 50 120"/></g>
-    <path d="M24 70 L 40 60 L 90 46 L 140 40 L 172 48 L 204 58 L 222 62 L 252 56 L 278 64 L 266 78 L 236 80 L 226 86 L 252 96 L 292 100 L 320 112 L 328 128 L 312 140 L 272 150 L 232 152 L 182 160 L 150 165 L 118 172 L 76 188 L 56 176 L 44 142 L 48 110 L 34 86 Z"
-      fill="#FFF3D6" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
-    <path d="M24 70 L 34 86 L 48 110 L 44 142 L 56 176" fill="none" stroke="#E8C78F" stroke-width="2" stroke-dasharray="4 4"/>
-    <ellipse cx="288" cy="161" rx="14" ry="4" fill="#FFF3D6" stroke="#fff" stroke-width="2"/>
-    <g fill="#9BD68A" opacity=".55"><circle cx="120" cy="100" r="18"/><circle cx="160" cy="110" r="14"/><circle cx="90" cy="130" r="12"/><circle cx="220" cy="120" r="12"/></g>
-    <path d="M -10 -10 C 120 0 260 40 318 124" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="2 7" stroke-linecap="round"/>
-    <path d="M 318 124 C 300 100 270 80 238 60" fill="none" stroke="#FF6B5B" stroke-width="3" stroke-dasharray="6 5" stroke-linecap="round"/>
-    <text x="12" y="20" font-size="11" font-weight="800" fill="#0B3A53" font-family="Plus Jakarta Sans">✈ desde Montreal</text>
-    <text x="282" y="84" font-size="10" font-weight="800" fill="#FF6B5B" font-family="Plus Jakarta Sans">🚐 4 h</text>
-    ${pins.map(p => p.s ? `<g><circle cx="${p.x}" cy="${p.y}" r="4" fill="${p.c}" stroke="#fff" stroke-width="2"/><text x="${p.x + 7}" y="${p.y + 4}" font-size="9" font-weight="700" fill="#0B3A53" font-family="Plus Jakarta Sans">${p.t}</text></g>`
-      : `<g class="pin" data-a="sub" data-k="zone" data-v="${p.z}"><circle class="pulse" cx="${p.x}" cy="${p.y}" r="10" fill="${p.c}"/><circle cx="${p.x}" cy="${p.y}" r="8" fill="${p.c}" stroke="#fff" stroke-width="3"/>
-        <rect x="${p.x - 44}" y="${p.y - 30}" width="88" height="18" rx="9" fill="#0B3A53"/><text x="${p.x}" y="${p.y - 17.5}" text-anchor="middle" font-size="10" font-weight="800" fill="#fff" font-family="Plus Jakarta Sans">${p.t}</text></g>`).join('')}
+function islandMap(layer) {
+  const v = VIEWS[sub.view || 'all'];
+  const ours = window.PLACES.filter(p => !p.offmap);
+  const sc = `transform="scale(${pinScale(v).toFixed(3)})"`;
+  const pin = (p, cls, fn) => { const [x, y] = proj(p.lat, p.lon); return `<g class="pin ${cls}" data-a="${fn}" data-id="${p.id}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><g class="sc" ${sc}><circle class="hit" r="6"/>${cls === 'ico' ? `<circle r="2.6"/><text y="-4.5" text-anchor="middle">${p.emoji}</text>` : `<circle r="2"/>`}</g></g>`; };
+  const base = (lat, lon, c, t, z) => { const [x, y] = proj(lat, lon); return `<g class="pin base" data-a="mapview" data-v="${z}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><g class="sc" ${sc}>
+    <circle class="pulse" r="6" fill="${c}"/><circle r="4.2" fill="${c}" stroke="#fff" stroke-width="1.4"/>
+    <rect x="${z === 'puj' ? -50 : -27}" y="-15.5" width="54" height="9" rx="4.5" fill="#0B3A53"/><text x="${z === 'puj' ? -23 : 0}" y="-9.2" text-anchor="middle" class="lbl">${t}</text></g></g>`; };
+  const [lx, ly] = proj(19.31, -69.54), [hx, hy] = proj(18.745, -68.455), [ax, ay] = proj(18.567, -68.363);
+  return `<svg id="island" viewBox="${v.join(' ')}" role="img" aria-label="Mapa de La Española con nuestras zonas">
+    <defs><filter id="glow"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
+    <g class="waves" opacity=".3" stroke="#fff" fill="none" stroke-width=".8"><path d="M10 12 q 8 -4 16 0 t 16 0"/><path d="M300 150 q 8 -4 16 0 t 16 0"/><path d="M60 150 q 8 -4 16 0 t 16 0"/><path d="M200 10 q 8 -4 16 0 t 16 0"/></g>
+    <path d="${M.hti}" class="hti"/><text x="60" y="70" class="country">HAITÍ</text>
+    <path d="${M.dom}" class="dom"/><text x="165" y="100" class="country">REP. DOMINICANA</text>
+    <circle cx="${lx}" cy="${ly}" r="13" fill="#00B4C5" opacity=".35" filter="url(#glow)"/>
+    <circle cx="${hx}" cy="${hy}" r="13" fill="#FFB627" opacity=".4" filter="url(#glow)"/>
+    <path class="route" vector-effect="non-scaling-stroke" d="M ${ax} ${ay} C ${ax - 30} ${ay - 40}, ${lx + 40} ${ly + 30}, ${lx} ${ly}"/>
+    <path class="route" vector-effect="non-scaling-stroke" d="M ${lx} ${ly} C ${lx + 40} ${ly + 20}, ${hx - 20} ${hy - 30}, ${hx} ${hy}"/>
+    <text x="${ax + 4}" y="${ay + 9}" class="plane">✈️</text>
+    ${layer !== 'iconic' ? ours.map(p => pin(p, 'our', 'place')).join('') : ''}
+    ${layer !== 'ours' ? window.ICONIC.map(p => pin(p, 'ico', 'iconic')).join('') : ''}
+    ${base(19.31, -69.54, '#00B4C5', 'Las Terrenas', 'ltr')}${base(18.745, -68.455, '#FFB627', 'Hard Rock', 'puj')}
   </svg>`;
+}
+function animateView(to) {
+  const svg = $('#island'); if (!svg) return;
+  const from = svg.getAttribute('viewBox').split(' ').map(Number); const t0 = performance.now();
+  const step = t => { const k = Math.min(1, (t - t0) / 650); const e = 1 - Math.pow(1 - k, 3);
+    const vb = from.map((f, i) => f + (to[i] - f) * e); svg.setAttribute('viewBox', vb.map(n => n.toFixed(2)).join(' '));
+    svg.querySelectorAll('.sc').forEach(g => g.setAttribute('transform', `scale(${pinScale(vb).toFixed(3)})`)); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+function placeSheet(p, iconic) {
+  const w = S.wish[p.id] || []; const on = w.includes(S.me); const c = window.CREDITS[p.img];
+  sheet(`${p.img ? `<div class="sheet-img" style="background-image:url(${img(p.img)})"></div>` : ''}
+    <h2 style="margin-top:12px">${p.emoji} ${esc(p.name)}</h2><p class="muted" style="margin-top:-4px">${esc(p.desc)}</p>
+    ${iconic ? `<div class="settle"><span>🚐</span><span class="grow">${esc(p.how)}</span></div>` : ''}
+    <div class="row" style="gap:8px;margin-top:12px"><a class="btn sm ghost" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.q || p.name)}" target="_blank" rel="noopener">📍 Abrir en Maps</a>
+    <button class="btn sm ${on ? 'coral' : 'ghost'}" data-a="wish" data-id="${p.id}" data-keep="1">${on ? '❤️' : '🤍'} ${w.length || ''} Me apetece</button></div>
+    ${c ? `<p class="tiny" style="margin-top:12px">Foto: ${esc(c.a)} · ${esc(c.l)} · <a href="${esc(c.u)}" target="_blank" rel="noopener">Wikimedia Commons</a></p>` : ''}`);
 }
 
 // ---------- GROUP ----------
@@ -673,13 +718,18 @@ function answer(raw) {
   if (has('cena', 'cenar', 'cenamos', 'comer', 'restaurante', 'comida', 'menu')) {
     const fav = S.dishes.slice().sort((a, b) => b.likes.length - a.likes.length).slice(0, 4);
     return `Para ${groupLine()} lo más cómodo:<ul><li><b>En la villa:</b> el chef cocina para todos. ${fav.length ? 'Platos favoritos del grupo: ' + fav.map(d => esc(d.name)).join(', ') + '.' : 'Apuntad vuestros platos en Gustos y le paso el menú.'}</li>
-      <li><b>Pueblo de los Pescadores</b> (Las Terrenas): reservad mesa larga al atardecer y avisad de que van niños.</li><li><b>Hard Rock:</b> reservad los à la carte nada más llegar; para un grupo así conviene turno temprano (19:00).</li></ul>`;
+      <li><b>Las Terrenas, mesa grande con peques:</b> ${window.LOCALS.filter(l => l.zone === 'ltr' && l.big).map(l => esc(l.name)).join(', ')}. Pescado con coco: Plaza Delfín.</li>
+      <li><b>Fuera del resort:</b> Captain Cook (El Cortecito) o los paradores de Playa Macao (efectivo).</li><li><b>Hard Rock:</b> reservad los à la carte nada más llegar; para un grupo así conviene turno temprano (19:00).</li></ul>`;
   }
   if (has('excursion', 'recomienda', 'recomiendas', 'que ver', 'actividad')) {
     const ranked = window.PLACES.filter(p => p.cat === 'excursion').map(p => ({ p, w: (S.wish[p.id] || []).length })).sort((a, b) => b.w - a.w).slice(0, 4);
     return `Mi top para este grupo (ordenado por lo que más os apetece en Explora):<ul>${ranked.map(r => `<li><b>${r.p.emoji} ${esc(r.p.name)}</b> — ${esc(r.p.desc)}${r.w ? ` (${r.w} ❤️)` : ''}</li>`).join('')}</ul>Con peques pequeños: Cayo Levantado o Salto El Limón a caballo. Para los adultos: catamarán.`;
   }
-  if (has('vuelo', 'avion', 'escala', 'montreal')) return `✈️ Ida: BCN → YUL el vie 13 (llegada ~17:00, noche en hotel del aeropuerto) y YUL 09:30 → PUJ 14:00 el sáb 14. Vuelta: PUJ → BCN el mié 25. 720 €/persona, ahorro ~3.800 € frente a Madrid. Ojo: <b>eTA de Canadá</b> para todos.`;
+  if (has('vuelo', 'avion', 'escala', 'montreal', 'pasaje', 'billete')) return `✈️ <b>Comprados</b> con Air Transat:<ul>${window.FLIGHTS.map(f => `<li><b>${f.no}</b> ${f.from}→${f.to} · ${esc(f.date)} · ${f.dep}–${f.arr}</li>`).join('')}</ul>Ida: noche en Montreal (16 h de conexión). Vuelta: 4 h 10 min de escala en YUL. Ojo: <b>eTA de Canadá</b> para todos.`;
+  if (has('propina', 'moneda', 'pesos', 'dolar', 'cajero', 'tip', 'consejo', 'agua', 'seguridad', 'regate')) {
+    const hit = window.TIPS.filter(t => q.includes(t[1].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').slice(0, 5)));
+    return `💡 Tips de locales:<ul>${(hit.length ? hit : window.TIPS.slice(0, 5)).map(t => `<li>${t[0]} <b>${esc(t[1])}:</b> ${esc(t[2])}</li>`).join('')}</ul>Todos en Explora → Tips de locales.`;
+  }
   if (has('documento', 'pasaporte', 'eta', 'papeles', 'faltan')) {
     const miss = members().filter(m => m.kind !== 'kid').map(m => ({ m, n: window.DOCS_CHECKLIST.filter(d => !S.docs[m.id]?.[d.id]).length })).filter(x => x.n);
     return miss.length ? `Les faltan documentos por marcar a:<ul>${miss.map(x => `<li>${x.m.avatar} ${esc(x.m.name)}: ${x.n}</li>`).join('')}</ul>Lo crítico: pasaporte, eTA de Canadá y E-Ticket dominicano.` : '✅ Todos los adultos tienen la checklist completa.';
@@ -753,6 +803,8 @@ function settingsSheet() {
     <label class="field"><span>Enlace del grupo de WhatsApp</span><input class="input" id="s-wa" value="${esc(S.whatsapp)}" placeholder="https://chat.whatsapp.com/…"></label>
     <label class="field"><span>Tipo de cambio (1 € =)</span><div class="row" style="gap:8px"><input class="input" id="s-usd" type="number" step="0.01" value="${S.fx.USD}"><span>$</span><input class="input" id="s-dop" type="number" step="1" value="${S.fx.DOP}"><span>RD$</span></div></label>
     <button class="btn ghost block" data-a="save-settings">Guardar ajustes</button>
+    <div class="grid2"><button class="btn ghost" data-a="notif">🔔 Notificaciones</button><button class="btn ghost" data-a="music">${S.music ? '🔇 Silenciar música' : '🔊 Activar música'}</button></div>
+    <button class="btn ghost block" style="margin-top:10px" data-a="credits">📷 Créditos de fotos</button>
     <div class="sec-title"><h2>Datos</h2></div>
     <div class="grid2"><button class="btn ghost" data-a="export">⬇️ Exportar</button><button class="btn ghost" data-a="import">⬆️ Importar</button></div>
     <p class="tiny">Hasta conectar el backend, los datos viven en este móvil. Exportar/Importar sirve para pasar el estado a otro dispositivo.</p>
@@ -797,6 +849,118 @@ function photoSheet(id) {
   async sh => { const el = $('[data-ph]', sh); el.style.backgroundImage = `url(${await loadPhoto(p.id)})`; });
 }
 
+// ---------- Intro music: bachata instrumental original (Web Audio, sin archivos) ----------
+const Music = (() => {
+  let ctx, master, playing = false, stopT;
+  const N = n => 440 * Math.pow(2, (n - 69) / 12); // MIDI → Hz
+  const BPM = 128, B = 60 / BPM, E = B / 2;
+  // i–iv–V7 en La menor, la progresión clásica de bachata
+  const CH = { Am: [57, 60, 64], Dm: [62, 65, 69], E7: [64, 68, 71, 74], C: [60, 64, 67], G: [55, 59, 62] };
+  const PROG = ['Am', 'Am', 'Dm', 'E7', 'Am', 'C', 'Dm', 'E7', 'Am', 'Am', 'Dm', 'E7', 'Am', 'G', 'E7', 'Am'];
+  const MEL = {
+    Am: [81, 76, 72, 76, 81, 83, 84, 83], Dm: [86, 81, 77, 81, 86, 84, 81, 77], E7: [80, 83, 86, 83, 88, 86, 83, 80],
+    C: [79, 76, 72, 76, 79, 81, 79, 76], G: [79, 74, 71, 74, 79, 81, 83, 79],
+  };
+  function pluck(t, f, dur, vol, bright = 2600) {
+    const o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
+    o1.type = 'triangle'; o2.type = 'sawtooth'; o1.frequency.value = f; o2.frequency.value = f * 1.003;
+    lp.type = 'lowpass'; lp.frequency.setValueAtTime(bright, t); lp.frequency.exponentialRampToValueAtTime(500, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    const g2 = ctx.createGain(); g2.gain.value = 0.35; o2.connect(g2).connect(lp); o1.connect(lp); lp.connect(g).connect(master);
+    o1.start(t); o2.start(t); o1.stop(t + dur + .05); o2.stop(t + dur + .05);
+  }
+  function bass(t, f, dur) {
+    const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(.5, t + .02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(master); o.start(t); o.stop(t + dur + .05);
+  }
+  function bongo(t, hi, acc) {
+    const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine';
+    const f = hi ? 420 : 290; o.frequency.setValueAtTime(f * 1.5, t); o.frequency.exponentialRampToValueAtTime(f, t + .03);
+    g.gain.setValueAtTime(acc ? .32 : .16, t); g.gain.exponentialRampToValueAtTime(0.0001, t + .16);
+    o.connect(g).connect(master); o.start(t); o.stop(t + .2);
+  }
+  let noiseBuf;
+  function guira(t, acc) {
+    if (!noiseBuf) { noiseBuf = ctx.createBuffer(1, ctx.sampleRate * .1, ctx.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    s.buffer = noiseBuf; f.type = 'highpass'; f.frequency.value = 6500;
+    g.gain.setValueAtTime(acc ? .14 : .06, t); g.gain.exponentialRampToValueAtTime(0.0001, t + (acc ? .09 : .04));
+    s.connect(f).connect(g).connect(master); s.start(t); s.stop(t + .1);
+  }
+  function schedule(t0) {
+    PROG.forEach((c, bar) => {
+      const t = t0 + bar * 4 * B, ch = CH[c];
+      MEL[c].forEach((n, i) => pluck(t + i * E, N(n), .32, i % 2 ? .07 : .1));
+      if (bar % 4 === 3) [0, 1, 2, 3].forEach(i => pluck(t + 3.5 * B + i * E / 2, N(MEL[c][7 - i] - 12), .18, .06, 3200)); // floreo de requinto
+      [0, 2].forEach(b => ch.forEach((n, k) => pluck(t + (b + 1) * B + k * .012, N(n - 12), .22, .035, 1800))); // segunda guitarra
+      bass(t, N(ch[0] - 24), B * 1.4); bass(t + 1.5 * B, N(ch[0] - 24), B * .6); bass(t + 2 * B, N(ch[2] - 24), B * 1.2); bass(t + 3.5 * B, N(ch[1] - 24), B * .5);
+      for (let i = 0; i < 8; i++) { bongo(t + i * E, i % 2 === 0, i === 0 || i === 4); guira(t + i * E, i % 2 === 0); if (i % 2) guira(t + i * E + E / 2, false); }
+    });
+    return PROG.length * 4 * B;
+  }
+  function start() {
+    if (playing || !S.music) return;
+    try {
+      if (navigator.audioSession) navigator.audioSession.type = 'playback'; // iPhone: suena aunque el móvil esté en silencio
+      ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+      ctx.resume();
+      const comp = ctx.createDynamicsCompressor(); master = ctx.createGain(); master.connect(comp).connect(ctx.destination);
+      const t0 = ctx.currentTime + .1, len = schedule(t0);
+      master.gain.setValueAtTime(0.0001, t0); master.gain.exponentialRampToValueAtTime(.55, t0 + 1.2);
+      master.gain.setValueAtTime(.55, t0 + len - 3); master.gain.exponentialRampToValueAtTime(0.0001, t0 + len + .3);
+      playing = true; clearTimeout(stopT); stopT = setTimeout(() => { playing = false; }, (len + .5) * 1000);
+    } catch { /* sin audio */ }
+  }
+  function stop() {
+    if (!playing || !master) return;
+    const t = ctx.currentTime; master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value, t); master.gain.exponentialRampToValueAtTime(0.0001, t + .4);
+    const m = master; setTimeout(() => m.disconnect(), 500); playing = false;
+  }
+  return { start, stop, get playing() { return playing; } };
+})();
+// Los navegadores solo dejan sonar audio tras un toque: arranca con el primer toque de cada apertura.
+let introDone = false;
+document.addEventListener('pointerdown', e => { if (!introDone && S.music && S.unlocked && !e.target.closest?.('[data-a=music]')) { introDone = true; Music.start(); } }, { capture: true });
+
+// ---------- Notificaciones ----------
+const canNotify = 'Notification' in window && 'serviceWorker' in navigator;
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+function notifCard() {
+  if (S.notifHidden) return '';
+  if (canNotify && Notification.permission === 'granted') return '';
+  const iosNeedsInstall = isIOS && !isStandalone();
+  const denied = canNotify && Notification.permission === 'denied';
+  return `<div class="card notif"><div class="row"><span style="font-size:30px">🔔</span><div class="grow"><b>Activa las notificaciones</b>
+    <div class="tiny">${iosNeedsInstall ? 'En iPhone primero instala la app: Safari → Compartir → «Añadir a pantalla de inicio». Luego ábrela desde el icono y pulsa aquí.'
+      : denied ? 'Las bloqueaste. Actívalas en los ajustes del móvil → Notificaciones → RD Trip Club.' : 'Avisos de pagos, actividades a las que te apuntas, documentos y cuenta atrás.'}</div></div></div>
+    <div class="row" style="gap:8px;margin-top:10px">${!iosNeedsInstall && !denied ? '<button class="btn sm sea" data-a="notif">Activar</button>' : ''}<button class="btn sm ghost" data-a="notif-hide">Ahora no</button></div></div>`;
+}
+async function notify(key, title, body, url = './#home') {
+  if (S.notified[key] || !canNotify || Notification.permission !== 'granted') return;
+  S.notified[key] = Date.now(); save();
+  const reg = await navigator.serviceWorker.ready.catch(() => null);
+  const opts = { body, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', tag: key, data: { url } };
+  if (reg) reg.showNotification(title, opts); else new Notification(title, opts);
+}
+// Recordatorios que se calculan al abrir la app (los avisos con la app cerrada llegan con el backend, fase 2).
+function checkReminders() {
+  if (!S.me) return;
+  const days = Math.ceil((tripStart - now()) / 864e5);
+  if ([200, 100, 60, 30, 14, 7, 3, 1].includes(days)) notify('cd-' + days, `🌴 ¡Quedan ${days} días!`, days > 7 ? 'RD Trip Club cuenta los días contigo.' : 'Revisa la checklist y la maleta 🧳', './#trip');
+  const myFam = me().fam;
+  window.MILESTONES.forEach(p => { if (!S.paid[p.id]?.[myFam]) notify('pay-' + p.id + '-' + new Date().toISOString().slice(0, 7), `💸 Pago pendiente: ${p.title}`, `${fam(myFam)?.name}: ${eur(p.share[myFam])} · ${p.due}`, './#wallet'); });
+  const docs = S.docs[S.me] || {};
+  if (days <= 90 && !window.DOCS_CHECKLIST.every(d => docs[d.id])) notify('docs-' + Math.floor(days / 30), '🛂 Documentos pendientes', 'Pasaporte, eTA de Canadá y E-Ticket dominicano.', './#trip');
+  const n = nextActivity();
+  if (n && /^\d/.test(n.it.time)) {
+    const t = new Date(`${n.day.date}T${n.it.time}:00`), mins = (t - now()) / 6e4;
+    if (mins > 0 && mins < 180 && (!n.it.optional || (S.signups[n.it.id] || []).includes(S.me))) notify('act-' + n.it.id, `⏰ ${n.it.title}`, `Hoy a las ${n.it.time}`, './#trip');
+  }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkReminders(); });
+
 // ---------- Actions (delegated; handlers by id/index, never by text) ----------
 const A = {
   go: d => { if (d.sub) sub[d.r] = d.sub; closeSheet(true); go(d.r); },
@@ -825,7 +989,14 @@ const A = {
     v[S.me] = +d.i; award(S.me, 15, 'voto registrado', 'vote-' + p.id + S.me); save(); render();
   },
   doc: d => { const x = window.DOCS_CHECKLIST[+d.i]; const m = S.docs[S.me] = S.docs[S.me] || {}; m[x.id] = !m[x.id]; if (window.DOCS_CHECKLIST.every(k => m[k.id])) { award(S.me, 50, 'papeles listos', 'docs-' + S.me); confetti(); } save(); render(); },
-  wish: d => { const w = S.wish[d.id] = S.wish[d.id] || []; const i = w.indexOf(S.me); i >= 0 ? w.splice(i, 1) : w.push(S.me); save(); render(); },
+  wish: d => {
+    const w = S.wish[d.id] = S.wish[d.id] || []; const i = w.indexOf(S.me); i >= 0 ? w.splice(i, 1) : w.push(S.me); save();
+    if (d.keep) { const p = [...window.PLACES, ...window.ICONIC].find(x => x.id === d.id); placeSheet(p, p.id[0] === 'i'); } else render();
+  },
+  mapview: d => { sub.view = d.v; S.ui.sub = sub; save(); animateView(VIEWS[d.v]); document.querySelectorAll('.map-zoom button').forEach(b => b.classList.toggle('on', b.dataset.v === d.v)); },
+  place: d => placeSheet(window.PLACES.find(p => p.id === d.id)),
+  iconic: d => placeSheet(window.ICONIC.find(p => p.id === d.id), true),
+  credits: () => sheet(`<h2>📷 Créditos de fotos</h2><p class="muted">Fotos reales de Wikimedia Commons con licencia libre.</p>${Object.entries(window.CREDITS).map(([k, c]) => `<div class="exp"><div class="ic" style="background:center/cover url(img/${k}.jpg)"></div><div class="grow"><b>${esc(c.a)}</b><div class="tiny">${esc(c.l)}</div></div><a class="btn sm ghost" href="${esc(c.u)}" target="_blank" rel="noopener">Ver</a></div>`).join('')}<p class="tiny">Mapa: Natural Earth (dominio público). Música: composición original sintetizada en la app.</p>`),
   paid: d => {
     const p = window.MILESTONES[+d.p]; const x = S.paid[p.id] = S.paid[p.id] || {}; x[d.f] = !x[d.f];
     if (x[d.f]) { members().filter(m => m.fam === d.f && m.kind === 'adult').forEach(m => award(m.id, 25, 'pago hecho', `pay-${p.id}-${m.id}`)); confetti(14); }
@@ -905,6 +1076,16 @@ const A = {
   ask: d => ask(SUGGEST[+d.i]),
   claude: () => { const last = [...S.chat].reverse().find(m => m.role === 'me'); copy(tripContext(last ? last.text : '¿Qué nos recomiendas para este viaje?'), 'Contexto copiado: pégalo en Claude ✨'); window.open('https://claude.ai/new', '_blank', 'noopener'); },
   'clear-chat': () => { S.chat = []; save(); render(); },
+  music: () => { S.music = !S.music; save(); if (S.music) { introDone = true; Music.start(); toast('🔊 Música activada'); } else { Music.stop(); toast('🔇 Música silenciada'); } closeSheet(); render(); },
+  notif: async () => {
+    if (!canNotify) return toast('Este navegador no permite notificaciones');
+    if (isIOS && !isStandalone()) return toast('Primero añade la app a la pantalla de inicio 📲');
+    const r = await Notification.requestPermission();
+    if (r === 'granted') { toast('🔔 Notificaciones activadas'); notify('welcome', '🌴 RD Trip Club', '¡Listo! Te avisaremos de pagos, planes y la cuenta atrás.'); checkReminders(); }
+    else toast('Sin permiso. Puedes activarlas luego en Ajustes.');
+    render();
+  },
+  'notif-hide': () => { S.notifHidden = true; save(); render(); },
   settings: () => settingsSheet(),
   'save-profile': () => {
     const pin = $('#s-pin').value.trim(); if (pin && !/^\d{4}$/.test(pin)) return toast('El PIN son 4 cifras');
@@ -937,5 +1118,6 @@ document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id
 function applyTheme() { const r = document.documentElement; if (S.theme === 'auto') r.removeAttribute('data-theme'); else r.dataset.theme = S.theme; }
 
 render();
+checkReminders();
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
 })();

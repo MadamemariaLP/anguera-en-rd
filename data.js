@@ -7,8 +7,8 @@ window.TRIP = {
   tagline: 'One group. One island. A thousand memories.',
   crew: 'Padres del fútbol ⚽',
   inviteHash: '89a112055063a15d411cf48ca9bd414b373091505c7bb8365445a78f858b2be0', // SHA-256 del código de invitación (no se guarda en claro)
-  start: '2027-08-13T10:00:00+02:00',
-  end: '2027-08-25',
+  start: '2027-08-13T14:50:00+02:00', // salida TS0261 desde BCN T2
+  end: '2027-08-26',
   nights: 12,
   fx: { USD: 1.17, DOP: 70 }, // 1 € = x (tipo supuesto del PDF; DOP aprox.)
   whatsapp: '', // enlace del grupo de WhatsApp (se pega en Ajustes)
@@ -51,12 +51,13 @@ window.ZONES = [
 window.DAYS = [
   { date: '2027-08-13', zone: 'yul', title: 'Barcelona → Montreal', emoji: '✈️',
     items: [
-      { id: 'a1', time: '—', title: 'Vuelo BCN → YUL', kind: 'flight', note: 'Llegada ~17:00 hora del Este' },
+      { id: 'a0', time: '12:00', title: 'Quedada en el aeropuerto · BCN Terminal 2', kind: 'chill', note: '3 h antes del vuelo largo' },
+      { id: 'a1', time: '14:50', title: 'Vuelo TS0261 BCN → YUL', kind: 'flight', note: 'Air Transat · 8 h 30 min · llegada 17:20 hora de Montreal' },
       { id: 'a2', time: '18:30', title: 'Hotel junto al aeropuerto YUL', kind: 'chill', note: '~200 $ por familia · 1 noche' },
     ] },
   { date: '2027-08-14', zone: 'ltr', title: 'Montreal → Punta Cana → Las Terrenas', emoji: '🛫',
     items: [
-      { id: 'a3', time: '09:30', title: 'Vuelo YUL → PUJ', kind: 'flight', note: 'Llegada 14:00' },
+      { id: 'a3', time: '09:20', title: 'Vuelo TS0398 YUL → PUJ', kind: 'flight', note: 'Air Transat · 4 h 25 min · llegada 13:45 a PUJ Terminal A' },
       { id: 'a4', time: '14:45', title: 'Transfer privado a Las Terrenas', kind: 'transfer', note: '4 h de carretera · o coches de alquiler (votación)' },
       { id: 'a5', time: '19:00', title: 'Llegada a la villa al atardecer', kind: 'chill', note: '🌅 Primer chapuzón obligatorio' },
     ] },
@@ -110,22 +111,31 @@ window.DAYS = [
       { id: 'a24', time: 'Todo el día', title: 'Playa y piscina', kind: 'beach' },
       { id: 'a25', time: '21:00', title: 'Cena de despedida + entrega de premios', kind: 'party' },
     ] },
-  { date: '2027-08-25', zone: 'puj', title: 'Punta Cana → Barcelona', emoji: '🛬',
+  { date: '2027-08-25', zone: 'puj', title: 'Punta Cana → Montreal → BCN', emoji: '🛫',
     items: [
-      { id: 'a26', time: '—', title: 'Vuelo PUJ → BCN', kind: 'flight', note: 'Morenos y con la canción del verano en bucle' },
+      { id: 'a25b', time: '12:00', title: 'Check-out y transfer a PUJ Terminal A', kind: 'transfer' },
+      { id: 'a26', time: '15:05', title: 'Vuelo TS0399 PUJ → YUL', kind: 'flight', note: 'Air Transat · 4 h 30 min · llegada 19:35' },
+      { id: 'a26b', time: '23:45', title: 'Vuelo TS0260 YUL → BCN', kind: 'flight', note: 'Air Transat · 7 h 15 min · escala de 4 h 10 min en Montreal' },
+    ] },
+  { date: '2027-08-26', zone: 'yul', title: 'Llegada a Barcelona', emoji: '🏠',
+    items: [
+      { id: 'a27', time: '13:00', title: 'Aterrizaje en BCN Terminal 2', kind: 'flight', note: 'Morenos y con la canción del verano en bucle' },
     ] },
 ];
 
+// Vuelos verificados (capturas de la reserva, 29/10/2026). Comprados ✅
+window.FLIGHTS_STATUS = { bought: true, airline: 'Air Transat', note: 'Comprados. En la app de la agencia aún ponía «Waiting for booking confirmation» (29/10): revisad que llega el email de confirmación.' };
 window.FLIGHTS = [
-  { from: 'BCN', fromCity: 'Barcelona', to: 'YUL', toCity: 'Montreal', date: 'Vie 13 ago', dep: '—', arr: '~17:00', note: '16 billetes · 720 €/persona ida y vuelta' },
-  { from: 'YUL', fromCity: 'Montreal', to: 'PUJ', toCity: 'Punta Cana', date: 'Sáb 14 ago', dep: '09:30', arr: '14:00', note: 'Escala larga a propósito: ahorra ~3.800 €' },
-  { from: 'PUJ', fromCity: 'Punta Cana', to: 'BCN', toCity: 'Barcelona', date: 'Mié 25 ago', dep: '—', arr: '—', note: 'Vuelta' },
+  { leg: 'Ida 1/2', no: 'TS0261', from: 'BCN', fromCity: 'Barcelona T2', to: 'YUL', toCity: 'Montreal', date: 'Vie 13 ago', dep: '14:50', arr: '17:20', dur: '8 h 30 min', note: 'Noche en Montreal: conexión de 16 h' },
+  { leg: 'Ida 2/2', no: 'TS0398', from: 'YUL', fromCity: 'Montreal', to: 'PUJ', toCity: 'Punta Cana T-A', date: 'Sáb 14 ago', dep: '09:20', arr: '13:45', dur: '4 h 25 min', note: 'Total ida: 28 h 55 min (con la noche)' },
+  { leg: 'Vuelta 1/2', no: 'TS0399', from: 'PUJ', fromCity: 'Punta Cana T-A', to: 'YUL', toCity: 'Montreal', date: 'Mié 25 ago', dep: '15:05', arr: '19:35', dur: '4 h 30 min', note: 'Conexión de 4 h 10 min en Montreal' },
+  { leg: 'Vuelta 2/2', no: 'TS0260', from: 'YUL', fromCity: 'Montreal', to: 'BCN', toCity: 'Barcelona T2', date: 'Mié 25 → Jue 26 ago', dep: '23:45', arr: '13:00 +1', dur: '7 h 15 min', note: 'Total vuelta: 15 h 55 min' },
 ];
 
 window.STAYS = [
-  { id: 's1', zone: 'yul', name: 'Hotel aeropuerto YUL', dates: '13 → 14 ago · 1 noche', price: '~200 $ por familia', status: 'pendiente' },
-  { id: 's2', zone: 'ltr', name: 'Villa en Las Terrenas', dates: '14 → 18 ago · 4 noches', price: '3.000–6.100 € + luz', status: 'votación', poll: 'p1' },
-  { id: 's3', zone: 'puj', name: 'Hard Rock Punta Cana', dates: '18 → 25 ago · 7 noches', price: '11.257 $ · 4 habitaciones', status: 'pendiente',
+  { id: 's1', zone: 'yul', name: 'Hotel aeropuerto YUL', dates: '13 → 14 ago · 1 noche (vuelo a las 09:20)', price: '~200 $ por familia', status: 'pendiente', img: 'p16', imgCap: 'Poutine, la cena típica de Montreal' },
+  { id: 's2', zone: 'ltr', name: 'Villa en Las Terrenas', dates: '14 → 18 ago · 4 noches', price: '3.000–6.100 € + luz', status: 'votación', poll: 'p1', img: 'villa', imgCap: 'Playa Cosón, la playa de las villas' },
+  { id: 's3', zone: 'puj', name: 'Hard Rock Punta Cana', dates: '18 → 25 ago · 7 noches', price: '11.257 $ · 4 habitaciones', status: 'pendiente', img: 'hardrock', imgCap: 'Hard Rock Hotel & Casino Punta Cana',
     rooms: [
       { fam: 'f1', label: '2A + 1 niño', price: 2700 },
       { fam: 'f2', label: '2A + 1 niño', price: 2700 },
@@ -177,22 +187,22 @@ window.DOCS_CHECKLIST = [
 
 // Lugares para Explora. Coordenadas reales aproximadas para abrir en Maps.
 window.PLACES = [
-  { id: 'p1', zone: 'ltr', cat: 'playa', name: 'Playa Cosón', emoji: '🏖️', desc: 'Kilómetros de arena y cocoteros junto a la villa. Ideal para los peques por la mañana.', q: 'Playa Cosón Las Terrenas', kids: true },
-  { id: 'p2', zone: 'ltr', cat: 'playa', name: 'Playa Bonita', emoji: '🌊', desc: 'Más tranquila y salvaje. Buena para la tarde de los quads.', q: 'Playa Bonita Las Terrenas', kids: true },
-  { id: 'p3', zone: 'ltr', cat: 'playa', name: 'Playa Las Ballenas', emoji: '🐋', desc: 'A un paseo del pueblo, con vistas a los islotes Las Ballenas.', q: 'Playa Las Ballenas Las Terrenas', kids: true },
-  { id: 'p4', zone: 'ltr', cat: 'excursion', name: 'Salto El Limón', emoji: '💦', desc: 'Cascada de ~40 m entre la selva. A caballo, a pie o en quad.', q: 'Salto El Limón Samaná' },
-  { id: 'p5', zone: 'ltr', cat: 'excursion', name: 'Playa Rincón', emoji: '🥥', desc: 'Una de las playas más bonitas del Caribe. Se llega en barca o 4×4.', q: 'Playa Rincón Samaná' },
-  { id: 'p6', zone: 'ltr', cat: 'excursion', name: 'Parque Nacional Los Haitises', emoji: '🦅', desc: 'Manglares, cuevas con pinturas taínas y cayos. En barco desde Samaná.', q: 'Parque Nacional Los Haitises' },
-  { id: 'p7', zone: 'ltr', cat: 'excursion', name: 'Cayo Levantado', emoji: '🏝️', desc: 'Islita frente a la bahía de Samaná. Plan fácil de medio día.', q: 'Cayo Levantado' },
-  { id: 'p8', zone: 'ltr', cat: 'comida', name: 'Pueblo de los Pescadores', emoji: '🐟', desc: 'Fila de restaurantes frente al mar en Las Terrenas. Pescado del día y atardecer.', q: 'Pueblo de los Pescadores Las Terrenas' },
-  { id: 'p9', zone: 'ltr', cat: 'comida', name: 'Cena del chef en la villa', emoji: '👨‍🍳', desc: 'Mangú, tostones, pescado con coco (estilo Samaná). Pedidle sancocho una noche.', q: 'Las Terrenas' },
-  { id: 'p10', zone: 'puj', cat: 'excursion', name: 'Isla Saona', emoji: '🌴', desc: 'Piscina natural con estrellas de mar y catamarán. Día completo.', q: 'Isla Saona' },
-  { id: 'p11', zone: 'puj', cat: 'fiesta', name: 'Catamarán party', emoji: '⛵', desc: 'Snorkel, música y barra libre en barco. Hay versiones familiares.', q: 'Catamaran Punta Cana' },
-  { id: 'p12', zone: 'puj', cat: 'excursion', name: 'Hoyo Azul · Scape Park', emoji: '💎', desc: 'Cenote turquesa dentro de un parque de aventura en Cap Cana.', q: 'Hoyo Azul Scape Park' },
-  { id: 'p13', zone: 'puj', cat: 'playa', name: 'Playa Macao', emoji: '🏄', desc: 'Playa virgen con olas para surf, a 20 min del Hard Rock.', q: 'Playa Macao' },
-  { id: 'p14', zone: 'puj', cat: 'playa', name: 'Playa del Hard Rock', emoji: '🎸', desc: 'La de casa: todo incluido, hamacas y barra libre.', q: 'Hard Rock Hotel Punta Cana', kids: true },
-  { id: 'p15', zone: 'puj', cat: 'kids', name: 'Kids club del resort', emoji: '🧸', desc: 'Para que los mayores tengan su rato de bachata.', q: 'Hard Rock Hotel Punta Cana', kids: true },
-  { id: 'p16', zone: 'yul', cat: 'comida', name: 'Poutine en Montreal', emoji: '🍟', desc: 'Si la noche da para un paseo: probad la poutine antes de dormir.', q: 'poutine near Montreal airport' },
+  { id: 'p1', lat: 19.335, lon: -69.487, img: 'p1', zone: 'ltr', cat: 'playa', name: 'Playa Cosón', emoji: '🏖️', desc: 'Kilómetros de arena y cocoteros junto a la villa. Ideal para los peques por la mañana.', q: 'Playa Cosón Las Terrenas', kids: true },
+  { id: 'p2', lat: 19.318, lon: -69.575, img: 'p2', zone: 'ltr', cat: 'playa', name: 'Playa Bonita', emoji: '🌊', desc: 'Más tranquila y salvaje. Buena para la tarde de los quads.', q: 'Playa Bonita Las Terrenas', kids: true },
+  { id: 'p3', lat: 19.323, lon: -69.537, img: 'p3', zone: 'ltr', cat: 'playa', name: 'Playa Las Ballenas', emoji: '🐋', desc: 'A un paseo del pueblo, con vistas a los islotes Las Ballenas.', q: 'Playa Las Ballenas Las Terrenas', kids: true },
+  { id: 'p4', lat: 19.28, lon: -69.449, img: 'p4', zone: 'ltr', cat: 'excursion', name: 'Salto El Limón', emoji: '💦', desc: 'Cascada de ~40 m entre la selva. A caballo, a pie o en quad.', q: 'Salto El Limón Samaná' },
+  { id: 'p5', lat: 19.3, lon: -69.233, img: 'p5', zone: 'ltr', cat: 'excursion', name: 'Playa Rincón', emoji: '🥥', desc: 'Una de las playas más bonitas del Caribe. Se llega en barca o 4×4.', q: 'Playa Rincón Samaná' },
+  { id: 'p6', lat: 19.04, lon: -69.6, img: 'p6', zone: 'ltr', cat: 'excursion', name: 'Parque Nacional Los Haitises', emoji: '🦅', desc: 'Manglares, cuevas con pinturas taínas y cayos. En barco desde Samaná.', q: 'Parque Nacional Los Haitises' },
+  { id: 'p7', lat: 19.171, lon: -69.272, img: 'p7', zone: 'ltr', cat: 'excursion', name: 'Cayo Levantado', emoji: '🏝️', desc: 'Islita frente a la bahía de Samaná. Plan fácil de medio día.', q: 'Cayo Levantado' },
+  { id: 'p8', lat: 19.322, lon: -69.529, img: 'p8', zone: 'ltr', cat: 'comida', name: 'Pueblo de los Pescadores', emoji: '🐟', desc: 'Fila de restaurantes frente al mar en Las Terrenas. Pescado del día y atardecer.', q: 'Pueblo de los Pescadores Las Terrenas' },
+  { id: 'p9', lat: 19.33, lon: -69.495, img: 'p9', zone: 'ltr', cat: 'comida', name: 'Cena del chef en la villa', emoji: '👨‍🍳', desc: 'Mangú, tostones, pescado con coco (estilo Samaná). Pedidle sancocho una noche.', q: 'Las Terrenas' },
+  { id: 'p10', lat: 18.16, lon: -68.7, img: 'p10', zone: 'puj', cat: 'excursion', name: 'Isla Saona', emoji: '🌴', desc: 'Piscina natural con estrellas de mar y catamarán. Día completo.', q: 'Isla Saona' },
+  { id: 'p11', lat: 18.6, lon: -68.36, img: 'p11', zone: 'puj', cat: 'fiesta', name: 'Catamarán party', emoji: '⛵', desc: 'Snorkel, música y barra libre en barco. Hay versiones familiares. (Foto: barcos en Bayahibe.)', q: 'Catamaran Punta Cana' },
+  { id: 'p12', lat: 18.43, lon: -68.4, img: 'p12', zone: 'puj', cat: 'excursion', name: 'Hoyo Azul · Scape Park', emoji: '💎', desc: 'Cenote turquesa dentro de un parque de aventura en Cap Cana.', q: 'Hoyo Azul Scape Park' },
+  { id: 'p13', lat: 18.77, lon: -68.53, img: 'p13', zone: 'puj', cat: 'playa', name: 'Playa Macao', emoji: '🏄', desc: 'Playa virgen con olas para surf, a 20 min del Hard Rock.', q: 'Playa Macao' },
+  { id: 'p14', lat: 18.745, lon: -68.46, img: 'p14', zone: 'puj', cat: 'playa', name: 'Playa del Hard Rock', emoji: '🎸', desc: 'La de casa, en la costa de Macao–Bávaro (foto: Bávaro): hamacas y barra libre.', q: 'Hard Rock Hotel Punta Cana', kids: true },
+  { id: 'p15', lat: 18.745, lon: -68.455, img: 'p15', zone: 'puj', cat: 'kids', name: 'Hard Rock: piscinas y kids club', emoji: '🧸', desc: 'Piscinas enormes y kids club, para que los mayores tengan su rato de bachata.', q: 'Hard Rock Hotel Punta Cana', kids: true },
+  { id: 'p16', lat: 45.47, lon: -73.74, offmap: true, img: 'p16', zone: 'yul', cat: 'comida', name: 'Poutine en Montreal', emoji: '🍟', desc: 'Si la noche da para un paseo: probad la poutine antes de dormir.', q: 'poutine near Montreal airport' },
 ];
 
 window.POLLS = [
@@ -256,4 +266,61 @@ window.LEXICON = [
   ['¡Qué lo que!', '¿Qué tal? / ¿Qué pasa?'], ['Chévere', 'Genial'], ['Vaina', 'Cosa (vale para todo)'],
   ['Tíguere', 'Listillo, buscavidas'], ['Jevi', 'Guay'], ['Ahorita', 'Ahora… o dentro de un rato largo'],
   ['Motoconcho', 'Moto-taxi'], ['Guagua', 'Autobús'], ['Un chin', 'Un poquito'],
+];
+
+// Sitios icónicos de toda la isla (capa «Icónicos» del mapa). far = mejor para otro viaje.
+window.ICONIC = [
+  { id: 'i1', name: 'Zona Colonial · Santo Domingo', emoji: '🏛️', img: 'zona', lat: 18.473, lon: -69.884, desc: 'La primera ciudad europea de América: Calle Las Damas, la Catedral Primada y el Alcázar de Colón.', how: '≈ 2 h 30 min desde Las Terrenas o Punta Cana. Excursión de día posible.' },
+  { id: 'i2', name: 'Altos de Chavón · La Romana', emoji: '🏰', img: 'chavon', lat: 18.421, lon: -68.917, desc: 'Pueblo mediterráneo de piedra sobre el río Chavón, con anfiteatro y vistas de película.', how: '≈ 1 h desde el Hard Rock.' },
+  { id: 'i3', name: 'Bayahibe', emoji: '🐠', img: 'bayahibe', lat: 18.370, lon: -68.840, desc: 'Pueblo pesquero con aguas cristalinas; de aquí salen los barcos a Saona y Catalinita.', how: '≈ 1 h 15 min desde el Hard Rock.' },
+  { id: 'i4', name: 'Bahía de las Águilas', emoji: '🦅', img: 'aguilas', lat: 17.830, lon: -71.650, desc: 'Considerada la playa más virgen del Caribe, en el Parque Nacional Jaragua.', how: 'Muy lejos (≈ 7 h). Para otro viaje.', far: true },
+  { id: 'i5', name: 'Lago Enriquillo', emoji: '🐊', img: 'enriquillo', lat: 18.500, lon: -71.580, desc: 'Lago salado bajo el nivel del mar con cocodrilos americanos e iguanas.', how: 'Muy lejos (≈ 6 h). Para otro viaje.', far: true },
+  { id: 'i6', name: 'Pico Duarte', emoji: '⛰️', img: 'duarte', lat: 19.023, lon: -70.998, desc: 'La montaña más alta del Caribe (3.098 m). Trekking de 2–3 días desde Jarabacoa.', how: 'Aventura aparte, no para este viaje.', far: true },
+  { id: 'i7', name: '27 Charcos de Damajagua', emoji: '💦', img: 'charcos', lat: 19.680, lon: -70.820, desc: 'Cascadas y pozas para saltar y deslizarse, cerca de Puerto Plata. Con guía y casco.', how: '≈ 4 h desde Las Terrenas.', far: true },
+  { id: 'i8', name: 'Teleférico de Puerto Plata', emoji: '🚡', img: 'teleferico', lat: 19.790, lon: -70.700, desc: 'Sube al Pico Isabel de Torres (≈ 800 m) con vistas a toda la costa norte.', how: '≈ 3 h 30 min desde Las Terrenas.', far: true },
+  { id: 'i9', name: 'Cabarete', emoji: '🪁', img: 'cabarete', lat: 19.750, lon: -70.410, desc: 'Capital mundial del kitesurf, con ambiente surfero y bares en la arena.', how: '≈ 3 h desde Las Terrenas.', far: true },
+  { id: 'i10', name: 'El Morro · Montecristi', emoji: '🗿', img: 'morro', lat: 19.870, lon: -71.660, desc: 'Meseta gigante sobre el mar en el extremo noroeste, junto a los Cayos Siete Hermanos.', how: 'Muy lejos (≈ 6 h). Para otro viaje.', far: true },
+  { id: 'i11', name: 'Ballenas jorobadas · Bahía de Samaná', emoji: '🐋', img: 'whale', lat: 19.180, lon: -69.330, desc: 'Miles de jorobadas vienen a criar de enero a marzo. En agosto no hay, pero la bahía es preciosa.', how: '≈ 1 h desde Las Terrenas (solo en temporada).' },
+  { id: 'i12', name: 'Mirador de Samaná', emoji: '🌄', img: 'samana', lat: 19.200, lon: -69.370, desc: 'Vista de la bahía de Samaná desde lo alto, camino de Las Terrenas.', how: 'De paso en el transfer.' },
+];
+
+// Recomendaciones locales verificadas (búsqueda 30/10/2026: TripAdvisor, guías locales, webs oficiales). Revisar horarios en Maps antes de ir.
+window.LOCALS = [
+  { zone: 'ltr', cat: 'comida', name: 'Casa Coson Restaurante', emoji: '🐟', desc: 'Chiringuito a pie de la villa: pescado a la brasa y cócteles.', kids: true, big: true, p: '$$', q: 'Casa Coson Restaurante Las Terrenas' },
+  { zone: 'ltr', cat: 'comida', name: 'Donde Valerio', emoji: '🦞', desc: 'Pescado frito, langosta y piña colada en la arena de Cosón.', kids: true, big: true, p: '$$', q: 'Donde Valerio Playa Coson Las Terrenas' },
+  { zone: 'ltr', cat: 'comida', name: 'Restaurant Luis', emoji: '🦐', desc: 'Clásico de langosta a la brasa y pescado fresco (más de 1.000 reseñas).', kids: true, big: true, p: '$$', q: 'Restaurant Luis Coson Las Terrenas' },
+  { zone: 'ltr', cat: 'comida', name: 'Restaurante Plaza Delfín', emoji: '🥥', desc: 'El más citado para el pescado con coco estilo Samaná (mero, pez león).', kids: true, p: '$$', q: 'Restaurante Plaza Delfin Las Terrenas' },
+  { zone: 'ltr', cat: 'comida', name: 'Las Terrenas Dulce Playa', emoji: '🌊', desc: 'Marisco informal frente al mar; pedid el pescado con coco. ≈ 25 $/persona.', kids: true, big: true, p: '$$', q: 'Las Terrenas Dulce Playa' },
+  { zone: 'ltr', cat: 'comida', name: 'La Terrasse', emoji: '🍷', desc: 'Bistró francés y de marisco en el Pueblo de los Pescadores. Noche de adultos; mejor reservar.', kids: false, p: '$$$', q: 'La Terrasse Pueblo de los Pescadores Las Terrenas' },
+  { zone: 'ltr', cat: 'comida', name: 'Los Chichas Comedor', emoji: '🍛', desc: 'Comedor familiar: plato del día dominicano (arroz, habichuelas, carne) ≈ 250 RD$. Preguntad el precio antes.', kids: true, p: '$', q: 'Los Chichas Comedor Las Terrenas' },
+  { zone: 'ltr', cat: 'comida', name: 'Pica Pollo King', emoji: '🍗', desc: 'Pica pollo (pollo frito dominicano) con tostones. Barato y a los peques les encanta.', kids: true, p: '$', q: 'Pica Pollo King Las Terrenas' },
+  { zone: 'ltr', cat: 'comida', name: 'Gelateria Italiana Artesanal', emoji: '🍨', desc: 'La heladería mejor valorada del pueblo. Probad la de guanábana.', kids: true, p: '$', q: 'Gelateria Italiana Artesanal Las Terrenas' },
+  { zone: 'ltr', cat: 'comida', name: 'Boulangerie Française', emoji: '🥐', desc: 'Desayunos: croissants, pain au chocolat y bocadillos.', kids: true, p: '$', q: 'Boulangerie Francaise Las Terrenas' },
+  { zone: 'ltr', cat: 'fiesta', name: 'Sunset Bar Restaurant', emoji: '🌅', desc: 'Bar de atardecer con marisco y música en vivo algunas noches (4,6/5).', kids: true, p: '$$', q: 'Sunset Bar Restaurant Las Terrenas' },
+  { zone: 'ltr', cat: 'fiesta', name: 'Mosquito · Playa Bonita', emoji: '🎧', desc: 'Beach bar con DJ al atardecer y olas de surf.', kids: true, p: '$$', q: 'Mosquito Boutique Hotel Playa Bonita Las Terrenas' },
+  { zone: 'ltr', cat: 'compras', name: 'Mercado de Plaza Rosada', emoji: '🥭', desc: 'Mercado de productores el sábado (¡el 14 de agosto es sábado!): fruta, cacao, productos locales. Al lado, cajero Scotiabank.', kids: true, p: '$', q: 'Plaza Rosada Las Terrenas' },
+  { zone: 'ltr', cat: 'excursion', name: 'Flora Tours', emoji: '🧭', desc: 'Agencia local: Frontón + Rincón (≈ 100 $), Los Haitises (≈ 90 $), El Limón (≈ 55 $) y catamarán privado para el grupo.', kids: true, p: '$$', q: 'Flora Tours Las Terrenas' },
+  { zone: 'ltr', cat: 'excursion', name: 'Peninsula Tours', emoji: '🚤', desc: 'Operador local muy conocido: Los Haitises desde ≈ 59 $, El Limón a caballo, Playa Frontón.', kids: true, p: '$$', q: 'Peninsula Tours Las Terrenas' },
+  { zone: 'puj', cat: 'comida', name: 'Paradores de Playa Macao', emoji: '🐠', desc: 'Pescado entero frito con tostones (600–1.200 RD$). Solo efectivo; preguntad el total antes. Ojo a las corrientes.', kids: true, p: '$$', q: 'Playa Macao' },
+  { zone: 'puj', cat: 'comida', name: 'Captain Cook · El Cortecito', emoji: '🦞', desc: 'Pescado y langosta a la brasa en la arena (4,3/5, ≈ 1.150 reseñas).', kids: true, big: true, p: '$$', q: 'Captain Cook El Cortecito Bavaro' },
+  { zone: 'puj', cat: 'comida', name: 'Cortecito Bar Restaurante', emoji: '🍤', desc: 'Marisco y comida dominicana en la playa, más económico.', kids: true, p: '$$', q: 'Cortecito Bar Restaurante Bavaro' },
+  { zone: 'puj', cat: 'comida', name: 'La Bruja Chupadora BBQ', emoji: '🔥', desc: 'Parrilla popular entre locales en Bávaro.', kids: true, p: '$$', q: 'La Bruja Chupadora Bavaro' },
+  { zone: 'puj', cat: 'excursion', name: 'Ojos Indígenas', emoji: '💧', desc: 'Reserva con 11–12 lagunas de agua dulce donde bañarse. Desde fuera del resort, solo con tour.', kids: true, p: '$$', q: 'Indigenous Eyes Ecological Park Punta Cana' },
+  { zone: 'puj', cat: 'compras', name: 'Mundo Auténtico', emoji: '💎', desc: 'Precio fijo (sin regateo): larimar, ámbar, cacao, café, ron y mamajuana. Pedid certificado del larimar.', kids: true, p: '$$', q: 'Mundo Auténtico Bávaro' },
+  { zone: 'yul', cat: 'comida', name: 'Poulet Rouge · aeropuerto YUL', emoji: '🍟', desc: 'Pollo a la brasa y poutine antes del control (abierto en 2025, 4,6/5). Perfecto para la noche del 13.', kids: true, p: '$', q: 'Poulet Rouge Aéroport Montréal-Trudeau' },
+];
+
+window.TIPS = [
+  ['💵', 'Propinas', 'La cuenta ya trae un 10 % de servicio y un 18 % de impuesto (ITBIS). Se suele dejar un 5–10 % extra en efectivo.'],
+  ['🇩🇴', 'Moneda', 'Pesos (RD$). Los dólares valen en zonas turísticas, pero con mal cambio. En comedores, colmados y paradores: pesos en efectivo.'],
+  ['🏧', 'Cajeros', 'Usad los que están dentro de un banco (en Las Terrenas, Scotiabank de Plaza Rosada) y pedid billetes pequeños.'],
+  ['🏪', 'Colmados', 'Tienda de barrio y bar a la vez: agua, hielo, Presidente y snacks a precio local.'],
+  ['🛵', 'Motoconchos', 'No son para familias con niños. Mejor taxi o transfer, acordando el precio antes de subir.'],
+  ['💧', 'Agua', 'Solo embotellada, también para lavarse los dientes. Cuidado con el hielo en los chiringuitos.'],
+  ['☀️', 'Sol y mosquitos', 'Protector alto, camisetas de agua para los peques y repelente al atardecer.'],
+  ['🌊', 'Corrientes', 'En Macao y algunas playas de Samaná hay corrientes de resaca: mirad las banderas y, si os arrastra, nadad en paralelo a la orilla.'],
+  ['🌀', 'Agosto', '30–33 °C y chubascos cortos. Es temporada de huracanes: seguro de viaje que lo cubra.'],
+  ['🔒', 'Seguridad', 'Pocos objetos de valor en la playa, nada a la vista en el coche y taxi de noche.'],
+  ['🤝', 'Regateo', 'Normal en mercados y con vendedores de playa (empezad un 30–40 % por debajo). En tiendas de precio fijo, no.'],
+  ['🗣️', 'Frases', '"¿Cuánto e\' todo?" · "¿Tiene pescado con coco?" · "Un chin" (un poquito) · "¿Qué lo que?"'],
 ];
