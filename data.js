@@ -18,10 +18,10 @@ window.TRIP = {
 window.SUPA = { url: 'https://pkncpyibekxhxrsvbzwk.supabase.co', key: 'sb_publishable_vgcIu-de5Dz2IqxQgije3A_oe7uGXjT' };
 
 window.FAMILIES = [
-  { id: 'f1', name: 'Familia 1', color: '#00B4C5', emoji: '🐬', room: '2A + 1 niño' },
-  { id: 'f2', name: 'Familia 2', color: '#FF6B5B', emoji: '🦩', room: '2A + 1 niño' },
-  { id: 'f3', name: 'Familia 3', color: '#FFB627', emoji: '🥭', room: '2A + 3 niños' },
-  { id: 'f4', name: 'Familia 4', color: '#1DB980', emoji: '🌴', room: '2A + 1 adol. + 2 niños' },
+  { id: 'f1', name: 'Chafardero', color: '#00B4C5', emoji: '🐬', room: '2A + 1 niño' },
+  { id: 'f2', name: 'Posturitas', color: '#FF6B5B', emoji: '🦩', room: '2A + 1 niño' },
+  { id: 'f3', name: 'Bertus', color: '#FFB627', emoji: '🥭', room: '2A + 3 niños' },
+  { id: 'f4', name: 'Los Rockets', color: '#1DB980', emoji: '🌴', room: '2A + 1 adol. + 2 niños' },
 ];
 
 // 8 adultos, 1 adolescente, 7 niños. Nombres editables desde la app.
