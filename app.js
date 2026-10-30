@@ -32,6 +32,7 @@ const defaults = () => ({
 });
 let S;
 try { S = Object.assign(defaults(), JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { S = defaults(); }
+S.unlocked = true; // sin código de entrada (decisión de María, 30/10)
 // Migraciones: datos que el grupo ya confirmó y deben aparecer en todos los móviles.
 if (S.mig < 2) { S.paid.pay1 = Object.fromEntries(window.FAMILIES.map(f => [f.id, true])); S.mig = 2; }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { toast('No se pudo guardar (almacenamiento lleno)'); } };
@@ -228,21 +229,13 @@ function nav() {
 
 // ---------- Welcome / invite gate ----------
 function welcome() {
-  if (!S.unlocked) return `<section class="welcome">${scene(700)}
-    <div class="inner">
-      <div class="label">${esc(T.crew)} · 13—25 AGO 2027</div>
-      <h1>RD TRIP<br>CLUB</h1>
-      <p class="tag">${esc(T.tagline)}</p>
-      <label class="field"><span style="color:#fff">Código de invitación</span>
-        <input class="input" id="code" autocomplete="off" autocapitalize="characters" placeholder="••••••••"></label>
-      <button class="btn block" data-a="unlock">Entrar al club 🌴</button>
-      <p class="tiny" style="color:#fff;opacity:.8;text-align:center;margin-top:12px">App privada · solo invitados</p>
-    </div></section>`;
   const groups = fams().map(f => `<div class="fam-label">${f.emoji} ${esc(f.name)}</div><div class="who-grid">${members().filter(m => m.fam === f.id).map(m =>
     `<button data-a="pick-me" data-id="${m.id}"><span class="e">${m.avatar}</span>${esc(m.name)}</button>`).join('')}</div>`).join('');
   return `<section class="welcome">${scene(700)}
-    <div class="inner"><h1 style="font-size:40px">¿Quién eres? 👋</h1>
-    <p class="tag" style="margin-bottom:8px">Elige tu perfil. Luego podrás cambiar nombre y avatar.</p>
+    <div class="inner"><div class="label">${esc(T.crew)} · 13—26 AGO 2027</div>
+    <h1 style="font-size:44px">RD TRIP CLUB</h1><p class="tag" style="margin:8px 0 14px">${esc(T.tagline)}</p>
+    <h2 style="font-size:24px">¿Quién eres? 👋</h2>
+    <p class="tiny" style="color:#fff;opacity:.9;margin:4px 0 8px">Elige tu perfil. Luego podrás cambiar nombre, avatar y poner un PIN.</p>
     <div class="welcome-scroll">${groups}</div></div></section>`;
 }
 
@@ -329,9 +322,9 @@ function trip() {
   </div>
   <div class="seg">${[['plan', '🗓️ Itinerario'], ['flights', '✈️ Vuelos'], ['stays', '🏡 Alojamiento'], ['check', '✅ Checklist']].map(x => `<button class="${t === x[0] ? 'on' : ''}" data-a="sub" data-k="trip" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>`;
 
-  if (t === 'flights') { const FS = window.FLIGHTS_STATUS; return head + `<div class="card bought" style="margin-top:14px"><div class="row"><span style="font-size:30px">✅</span><div class="grow"><b>Vuelos comprados · ${esc(FS.airline)}</b><div class="tiny">${esc(FS.note)}</div></div></div></div>
+  if (t === 'flights') { const FS = window.FLIGHTS_STATUS; return head + `<div class="card bought" style="margin-top:14px"><div class="row"><span style="font-size:30px">✅</span><div class="grow"><b>Vuelos comprados y confirmados · ${esc(FS.airline)}</b><div class="tiny">${esc(FS.note)}</div></div></div></div>
     ${window.FLIGHTS.map(f => `<div class="pass">
-    <div class="pass-head"><span>${esc(f.leg)}</span><b>✈ ${esc(f.no)}</b><span class="chip ok">Comprado</span></div>
+    <div class="pass-head"><span>${esc(f.leg)}</span><b>✈ ${esc(f.no)}</b><span class="chip ok">Confirmado</span></div>
     <div class="top"><div><div class="iata">${f.from}</div><div class="city">${esc(f.fromCity)}</div></div><div class="plane"><span>✈</span><small>${esc(f.dur)}</small></div>
     <div style="text-align:right"><div class="iata">${f.to}</div><div class="city">${esc(f.toCity)}</div></div></div>
     <div class="bottom"><div><span class="tiny">Fecha</span><b>${esc(f.date)}</b></div><div><span class="tiny">Sale</span><b>${esc(f.dep)}</b></div><div><span class="tiny">Llega</span><b>${esc(f.arr)}</b></div></div>
@@ -725,7 +718,7 @@ function answer(raw) {
     const ranked = window.PLACES.filter(p => p.cat === 'excursion').map(p => ({ p, w: (S.wish[p.id] || []).length })).sort((a, b) => b.w - a.w).slice(0, 4);
     return `Mi top para este grupo (ordenado por lo que más os apetece en Explora):<ul>${ranked.map(r => `<li><b>${r.p.emoji} ${esc(r.p.name)}</b> — ${esc(r.p.desc)}${r.w ? ` (${r.w} ❤️)` : ''}</li>`).join('')}</ul>Con peques pequeños: Cayo Levantado o Salto El Limón a caballo. Para los adultos: catamarán.`;
   }
-  if (has('vuelo', 'avion', 'escala', 'montreal', 'pasaje', 'billete')) return `✈️ <b>Comprados</b> con Air Transat:<ul>${window.FLIGHTS.map(f => `<li><b>${f.no}</b> ${f.from}→${f.to} · ${esc(f.date)} · ${f.dep}–${f.arr}</li>`).join('')}</ul>Ida: noche en Montreal (16 h de conexión). Vuelta: 4 h 10 min de escala en YUL. Ojo: <b>eTA de Canadá</b> para todos.`;
+  if (has('vuelo', 'avion', 'escala', 'montreal', 'pasaje', 'billete')) return `✈️ <b>Comprados y confirmados</b> con Air Transat:<ul>${window.FLIGHTS.map(f => `<li><b>${f.no}</b> ${f.from}→${f.to} · ${esc(f.date)} · ${f.dep}–${f.arr}</li>`).join('')}</ul>Ida: noche en Montreal (16 h de conexión). Vuelta: 4 h 10 min de escala en YUL. Ojo: <b>eTA de Canadá</b> para todos.`;
   if (has('propina', 'moneda', 'pesos', 'dolar', 'cajero', 'tip', 'consejo', 'agua', 'seguridad', 'regate')) {
     const hit = window.TIPS.filter(t => q.includes(t[1].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').slice(0, 5)));
     return `💡 Tips de locales:<ul>${(hit.length ? hit : window.TIPS.slice(0, 5)).map(t => `<li>${t[0]} <b>${esc(t[1])}:</b> ${esc(t[2])}</li>`).join('')}</ul>Todos en Explora → Tips de locales.`;
@@ -966,12 +959,6 @@ const A = {
   go: d => { if (d.sub) sub[d.r] = d.sub; closeSheet(true); go(d.r); },
   sub: d => { sub[d.k] = d.v; if (d.k === 'games') sub.reveal = false; render(); },
   'close-sheet': () => closeSheet(),
-  unlock: async () => {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode($('#code').value.trim().toUpperCase()));
-    const hex = [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
-    if (hex !== T.inviteHash) return toast('Código incorrecto 🙅');
-    S.unlocked = true; save(); render();
-  },
   'pick-me': d => {
     if (S.pins[d.id] && prompt(`PIN de ${mem(d.id).name}`) !== S.pins[d.id]) return toast('PIN incorrecto 🔒');
     S.me = d.id; S.ui = { route: 'home', sub: {} }; sub = {}; save(); render(); confetti(); toast(`¡Bienvenid@ al club, ${mem(d.id).name}! 🌴`);
@@ -1113,7 +1100,6 @@ document.addEventListener('click', e => {
   e.preventDefault(); fn(el.dataset);
 });
 document.addEventListener('input', e => { const k = e.target.dataset?.draft; if (k) { S.drafts[k] = e.target.value; save(); } });
-document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'code') A.unlock(); });
 
 function applyTheme() { const r = document.documentElement; if (S.theme === 'auto') r.removeAttribute('data-theme'); else r.dataset.theme = S.theme; }
 

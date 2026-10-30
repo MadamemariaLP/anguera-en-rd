@@ -6,7 +6,6 @@ window.TRIP = {
   name: 'RD TRIP CLUB',
   tagline: 'One group. One island. A thousand memories.',
   crew: 'Padres del fútbol ⚽',
-  inviteHash: '89a112055063a15d411cf48ca9bd414b373091505c7bb8365445a78f858b2be0', // SHA-256 del código de invitación (no se guarda en claro)
   start: '2027-08-13T14:50:00+02:00', // salida TS0261 desde BCN T2
   end: '2027-08-26',
   nights: 12,
@@ -123,8 +122,8 @@ window.DAYS = [
     ] },
 ];
 
-// Vuelos verificados (capturas de la reserva, 29/10/2026). Comprados ✅
-window.FLIGHTS_STATUS = { bought: true, airline: 'Air Transat', note: 'Comprados. En la app de la agencia aún ponía «Waiting for booking confirmation» (29/10): revisad que llega el email de confirmación.' };
+// Vuelos verificados (capturas de la reserva, 29/10/2026). Comprados y confirmados ✅
+window.FLIGHTS_STATUS = { bought: true, airline: 'Air Transat', note: 'Reserva confirmada · 16 billetes ida y vuelta vía Montreal.' };
 window.FLIGHTS = [
   { leg: 'Ida 1/2', no: 'TS0261', from: 'BCN', fromCity: 'Barcelona T2', to: 'YUL', toCity: 'Montreal', date: 'Vie 13 ago', dep: '14:50', arr: '17:20', dur: '8 h 30 min', note: 'Noche en Montreal: conexión de 16 h' },
   { leg: 'Ida 2/2', no: 'TS0398', from: 'YUL', fromCity: 'Montreal', to: 'PUJ', toCity: 'Punta Cana T-A', date: 'Sáb 14 ago', dep: '09:20', arr: '13:45', dur: '4 h 25 min', note: 'Total ida: 28 h 55 min (con la noche)' },
