@@ -35,6 +35,8 @@ try { S = Object.assign(defaults(), JSON.parse(localStorage.getItem(KEY) || '{}'
 S.unlocked = true; // sin código de entrada (decisión de María, 30/10)
 // Migraciones: datos que el grupo ya confirmó y deben aparecer en todos los móviles.
 if (S.mig < 2) { S.paid.pay1 = Object.fromEntries(window.FAMILIES.map(f => [f.id, true])); S.mig = 2; }
+S.pins = {}; // sin PIN (María, 30/10)
+if (S.mig < 3) { S.log = []; S.bingo = {}; S.missionDone = {}; S.challenges = {}; S.mig = 3; } // reinicio de puntos (María, 30/10)
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { toast('No se pudo guardar (almacenamiento lleno)'); } };
 
 // Photos live in IndexedDB (dataURLs pesan demasiado para localStorage).
@@ -235,7 +237,7 @@ function welcome() {
     <div class="inner"><div class="label">${esc(T.crew)} · 13—26 AGO 2027</div>
     <h1 style="font-size:44px">RD TRIP CLUB</h1><p class="tag" style="margin:8px 0 14px">${esc(T.tagline)}</p>
     <h2 style="font-size:24px">¿Quién eres? 👋</h2>
-    <p class="tiny" style="color:#fff;opacity:.9;margin:4px 0 8px">Elige tu perfil. Luego podrás cambiar nombre, avatar y poner un PIN.</p>
+    <p class="tiny" style="color:#fff;opacity:.9;margin:4px 0 8px">Elige tu perfil. Luego podrás cambiar nombre y avatar.</p>
     <div class="welcome-scroll">${groups}</div></div></section>`;
 }
 
@@ -274,7 +276,7 @@ function home() {
   <div class="sec-title"><h2>Accesos rápidos</h2></div>
   <div class="grid4">${quick.map(q => `<button class="tile" data-a="go" data-r="${q[0]}"><div class="tile-ic" style="background:${q[3]}">${q[1]}</div>${q[2]}</button>`).join('')}</div>
 
-  <div class="sec-title"><h2>🎶 Banda sonora</h2><span class="tiny">Juan Luis Guerra</span></div>
+  <div class="sec-title"><h2>🎶 Banda sonora</h2><span class="tiny">${SOUNDTRACK.length} temazos</span></div>
   <div class="hscroll">${SOUNDTRACK.map((x, i) => `<button class="song-card" data-a="song" data-i="${i}" style="--h:${[350, 15, 200, 45][i]}"><span class="disc">💿</span><b>${esc(x.t)}</b><span class="tiny">${esc(x.a)}</span></button>`).join('')}</div>
 
   ${pending ? `<div class="sec-title"><h2>Próximo paso</h2><button data-a="go" data-r="wallet">Ver pagos</button></div>
@@ -349,7 +351,7 @@ function trip() {
     ${window.VILLAS.map((v, i) => `<div class="card villa"><div class="thumb">${['🏡', '🌴', '🥥', '🐚', '💎', '🌺', '🛎️', '🌊'][i] || '🏠'}</div><div class="grow">
       <b>${esc(v.name)}</b><div class="tiny">${esc(v.meta)} · ★ ${v.rating ? String(v.rating).replace('.', ',') : 'Nuevo'}</div>
       <div class="tags">${v.tags.map(x => `<span class="${x === 'Favorita' ? 'hot' : ''}">${esc(x)}</span>`).join('')}</div>
-      <div style="margin-top:6px;font:800 18px var(--font-display)">${v.price ? `${eur(v.price)} <span class="tiny">· 4 noches · ${eur(Math.round(v.price / members().length))}/pers.</span>` : '<span class="tiny" style="font:700 13px var(--font)">Precio por confirmar · míralo en Airbnb</span>'}</div>
+      <div style="margin-top:6px;font:800 18px var(--font-display)">${v.price ? `${eur(v.price)} <span class="tiny">total Airbnb · 4 noches · ${eur(Math.round(v.price / members().length))}/pers.</span>` : '<span class="tiny" style="font:700 13px var(--font)">Precio por confirmar · míralo en Airbnb</span>'}</div>
       ${v.url ? `<a class="btn sm airbnb" href="${esc(v.url)}" target="_blank" rel="noopener">Ver en Airbnb ↗</a>` : ''}</div></div>`).join('')}
     <div class="sec-title"><h2>Vota la villa</h2></div>${pollCard(p1)}
     <p class="tiny" style="margin-top:8px">Ojo: la luz se paga aparte en todas las villas.</p></div>`;
@@ -395,8 +397,11 @@ function pollCard(p) {
 // ---------- EXPLORE ----------
 const M = window.MAP;
 const proj = (lat, lon) => [(lon - M.lon0) * M.k, (M.lat0 - lat) * M.ky];
+const MT = window.MTLMAP;
+const projM = (lat, lon) => [(lon - MT.lon0) * MT.k, (MT.lat0 - lat) * MT.ky];
 const VIEWS = { all: [-4, -8, M.w + 30, M.h + 34], ltr: [258, 30, 84, 43], puj: [284, 72, 108, 60] };
 const pinScale = vb => Math.max(.38, vb[2] / VIEWS.all[2]);
+const isMtl = () => sub.view === 'yul';
 const img = k => k ? `img/${k}.jpg` : '';
 function explore() {
   const zf = sub.zone || 'all', cf = sub.cat || 'all', layer = sub.layer || 'ours';
@@ -409,10 +414,12 @@ function explore() {
     <div class="row" style="gap:8px"><a class="btn sm ghost" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.q)}" target="_blank" rel="noopener">📍 Maps</a>
     <button class="btn sm ${on ? 'coral' : 'ghost'}" data-a="wish" data-id="${p.id}">${on ? '❤️' : '🤍'} ${w.length || ''} Me apetece</button></div></div></div>`; };
   return `<div class="page-head"><h1>Explora RD</h1><p>Toda la isla: dónde estaremos y sus sitios icónicos.</p></div>
-  <div class="mapwrap" style="margin-top:12px">${islandMap(layer)}
-    <div class="map-zoom">${[['all', '🏝️ Isla'], ['ltr', 'Samaná'], ['puj', 'Punta Cana']].map(x => `<button class="${(sub.view || 'all') === x[0] ? 'on' : ''}" data-a="mapview" data-v="${x[0]}">${x[1]}</button>`).join('')}</div></div>
-  <div class="seg" style="margin-top:10px">${[['ours', '📍 Donde estaremos'], ['iconic', '⭐ Icónicos'], ['both', '🗺️ Todo']].map(x => `<button class="${layer === x[0] ? 'on' : ''}" data-a="sub" data-k="layer" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>
-  ${layer !== 'ours' ? `<div class="sec-title"><h2>Icónicos de RD</h2><span class="tiny">toca para ver</span></div>
+  <div class="mapwrap ${isMtl() ? 'mtl' : ''}" style="margin-top:12px">${isMtl() ? mtlMap() : islandMap(layer)}
+    <div class="map-zoom">${[['all', '🏝️ Isla'], ['ltr', 'Samaná'], ['puj', 'Punta Cana'], ['yul', '🍁 Montreal']].map(x => `<button class="${(sub.view || 'all') === x[0] ? 'on' : ''}" data-a="mapview" data-v="${x[0]}">${x[1]}</button>`).join('')}</div></div>
+  ${isMtl() ? `<div class="sec-title"><h2>🍁 Una noche en Montreal</h2><span class="tiny">13 ago</span></div>
+  <div class="card">${window.MTL_PLAN.map(x => `<div class="check"><span style="font-size:22px">${x[0]}</span><span class="grow"><b>${esc(x[1])}</b><div class="tiny" style="color:var(--ink-2)">${esc(x[2])}</div></span></div>`).join('')}</div>` : ''}
+  <div class="seg ${isMtl() ? 'hide' : ''}" style="margin-top:10px">${[['ours', '📍 Donde estaremos'], ['iconic', '⭐ Icónicos'], ['both', '🗺️ Todo']].map(x => `<button class="${layer === x[0] ? 'on' : ''}" data-a="sub" data-k="layer" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>
+  ${layer !== 'ours' && !isMtl() ? `<div class="sec-title"><h2>Icónicos de RD</h2><span class="tiny">toca para ver</span></div>
   <div class="hscroll">${window.ICONIC.map(p => `<button class="icard" data-a="iconic" data-id="${p.id}" style="background-image:linear-gradient(transparent 40%,rgba(0,0,0,.65)),url(${img(p.img)})">
     ${p.far ? '<span class="chip far">otro viaje</span>' : '<span class="chip near">excursión</span>'}<b>${p.emoji} ${esc(p.name)}</b></button>`).join('')}</div>` : ''}
   <div class="seg" style="margin-top:16px">${[['all', '🌎 Todo'], ['ltr', '🏝️ Las Terrenas'], ['puj', '🎸 Punta Cana'], ['yul', '🍁 Montreal']].map(x => `<button class="${zf === x[0] ? 'on' : ''}" data-a="sub" data-k="zone" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>
@@ -425,11 +432,18 @@ function explore() {
     <p class="tiny">Revisad horarios y reseñas recientes en Maps antes de ir: en 2027 algo puede haber cambiado.</p></div>` : ''}
   ${!places.length && !locals.length ? '<div class="card muted">Nada por aquí con esos filtros.</div>' : ''}
   <div class="sec-title"><h2>💡 Tips de locales</h2></div>
+  <div class="card fx">
+    <div class="row"><span style="font-size:24px">💱</span><b class="grow">Cambio de moneda</b><span class="tiny">editable</span></div>
+    <div class="fx-grid"><label><span class="tiny">1 € =</span><input class="input" id="fx-usd" type="number" step="0.01" inputmode="decimal" value="${S.fx.USD}"><b>$</b></label>
+    <label><span class="tiny">1 € =</span><input class="input" id="fx-dop" type="number" step="1" inputmode="decimal" value="${S.fx.DOP}"><b>RD$</b></label></div>
+    <label class="field" style="margin:10px 0 4px"><span>Conversor rápido</span><input class="input" id="fx-in" type="number" inputmode="decimal" placeholder="Importe en €"></label>
+    <div class="tiny" id="fx-out">Escribe un importe en € para ver $ y RD$.</div>
+    <p class="tiny" style="margin-bottom:0">El tipo se usa en Wallet para pasar gastos en $ o RD$ a €. Revisadlo antes de viajar.</p></div>
   <div class="card">${window.TIPS.map(t => `<div class="check"><span style="font-size:22px">${t[0]}</span><span class="grow"><b>${esc(t[1])}</b><div class="tiny" style="color:var(--ink-2)">${esc(t[2])}</div></span></div>`).join('')}</div>`;
 }
 function islandMap(layer) {
   const v = VIEWS[sub.view || 'all'];
-  const ours = window.PLACES.filter(p => !p.offmap);
+  const ours = window.PLACES.filter(p => p.zone !== 'yul');
   const sc = `transform="scale(${pinScale(v).toFixed(3)})"`;
   const pin = (p, cls, fn) => { const [x, y] = proj(p.lat, p.lon); return `<g class="pin ${cls}" data-a="${fn}" data-id="${p.id}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><g class="sc" ${sc}><circle class="hit" r="6"/>${cls === 'ico' ? `<circle r="2.6"/><text y="-4.5" text-anchor="middle">${p.emoji}</text>` : `<circle r="2"/>`}</g></g>`; };
   const base = (lat, lon, c, t, z) => { const [x, y] = proj(lat, lon); return `<g class="pin base" data-a="mapview" data-v="${z}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><g class="sc" ${sc}>
@@ -451,6 +465,28 @@ function islandMap(layer) {
     ${base(19.31, -69.54, '#00B4C5', 'Las Terrenas', 'ltr')}${base(18.745, -68.455, '#FFB627', 'Hard Rock', 'puj')}
   </svg>`;
 }
+function mtlMap() {
+  const P = projM, pins = window.PLACES.filter(p => p.zone === 'yul');
+  const [ax, ay] = P(45.4706, -73.7408), [vx, vy] = P(45.5075, -73.5545);
+  return `<svg id="mtlmap" viewBox="-6 -6 ${MT.w + 12} ${MT.h + 12}" role="img" aria-label="Mapa de Montreal">
+    <path d="${MT.laval}" class="land2"/><path d="${MT.island}" class="dom"/>
+    <text x="40" y="40" class="country">LAVAL</text><text x="130" y="150" class="country">ÎLE DE MONTRÉAL</text><text x="250" y="230" class="country">RÍO SAN LORENZO</text>
+    <circle cx="${vx}" cy="${vy}" r="22" fill="#FF6B5B" opacity=".25" filter="url(#glow)"/>
+    <defs><filter id="glow"><feGaussianBlur stdDeviation="4"/></filter></defs>
+    <path class="route" vector-effect="non-scaling-stroke" d="M ${ax} ${ay} C ${ax + 60} ${ay - 30}, ${vx - 80} ${vy + 10}, ${vx} ${vy}"/>
+    <text x="${(ax + vx) / 2 - 20}" y="${(ay + vy) / 2 + 22}" class="mlbl">🚕 25–30 min</text>
+    ${pins.map(p => { const [x, y] = P(p.lat, p.lon); return `<g class="pin our" data-a="place" data-id="${p.id}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><circle class="hit" r="9"/><circle r="4"/><text y="-7" text-anchor="middle" class="memo">${p.emoji}</text></g>`; }).join('')}
+    <g class="pin base" transform="translate(${ax.toFixed(1)} ${ay.toFixed(1)})"><circle class="pulse" r="9" fill="#FF6B5B"/><circle r="6" fill="#FF6B5B" stroke="#fff" stroke-width="2"/>
+      <rect x="-34" y="12" width="68" height="13" rx="6.5" fill="#0B3A53"/><text y="21.5" text-anchor="middle" class="lbl2">✈ YUL · hotel</text></g>
+  </svg>`;
+}
+after.explore = () => {
+  const conv = () => { const v = parseFloat($('#fx-in').value); $('#fx-out').innerHTML = v > 0 ? `<b>${eur(v)}</b> = <b>${num(v * S.fx.USD)} $</b> = <b>${num(v * S.fx.DOP)} RD$</b>` : 'Escribe un importe en € para ver $ y RD$.'; };
+  const setFx = () => { S.fx.USD = parseFloat($('#fx-usd').value) || T.fx.USD; S.fx.DOP = parseFloat($('#fx-dop').value) || T.fx.DOP; save(); conv(); };
+  $('#fx-usd')?.addEventListener('change', () => { setFx(); toast('Tipo de cambio guardado ✓'); });
+  $('#fx-dop')?.addEventListener('change', () => { setFx(); toast('Tipo de cambio guardado ✓'); });
+  $('#fx-in')?.addEventListener('input', conv);
+};
 function animateView(to) {
   const svg = $('#island'); if (!svg) return;
   const from = svg.getAttribute('viewBox').split(' ').map(Number); const t0 = performance.now();
@@ -525,24 +561,30 @@ function tastes() {
 
 // ---------- WALLET ----------
 function wallet() {
-  const t = sub.wallet || 'split';
+  const t = sub.wallet || 'budget';
   const spent = S.expenses.reduce((a, e) => a + toEur(e.amount, e.cur), 0);
   const head = `<div class="page-head"><h1>Wallet</h1><p>Presupuesto, pagos del viaje y gastos compartidos.</p></div>
   <div class="money-hero" style="margin-top:12px"><span class="deco">💸</span>
     <div class="label">Presupuesto del grupo</div><div class="amount">${eur(window.BUDGET.total)}</div>
     <div style="font-size:13px;opacity:.95">~${eur(window.BUDGET.perPerson)} por persona · gastado en destino: <b>${eur(spent)}</b></div></div>
-  <div class="seg" style="margin-top:14px">${[['split', '🧾 Gastos'], ['pay', '✅ Pagos'], ['budget', '📊 Presupuesto']].map(x => `<button class="${t === x[0] ? 'on' : ''}" data-a="sub" data-k="wallet" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>`;
+  <div class="seg" style="margin-top:14px">${[['budget', '📊 Presupuesto vs real'], ['split', '🧾 Gastos'], ['pay', '✅ Pagos']].map(x => `<button class="${t === x[0] ? 'on' : ''}" data-a="sub" data-k="wallet" data-v="${x[0]}">${x[1]}</button>`).join('')}</div>`;
 
   if (t === 'budget') {
-    const L = window.BUDGET.lines, cols = ['#00B4C5', '#FF6B5B', '#FFB627', '#1DB980', '#FF8FB1', '#7B2FF7', '#0B3A53', '#7FDBFF'];
-    let acc = 0; const C = 2 * Math.PI * 42;
-    const arcs = L.map((l, i) => { const f = l.eur / window.BUDGET.total; const s = `<circle r="42" cx="60" cy="60" fill="none" stroke="${cols[i]}" stroke-width="18" stroke-dasharray="${f * C} ${C}" stroke-dashoffset="${-acc * C}" transform="rotate(-90 60 60)"/>`; acc += f; return s; }).join('');
-    return head + `<div class="card donut" style="margin-top:14px"><svg viewBox="0 0 120 120" width="130" height="130">${arcs}<text x="60" y="58" text-anchor="middle" font-size="11" font-weight="800" fill="currentColor">28.340 €</text><text x="60" y="72" text-anchor="middle" font-size="8" fill="currentColor" opacity=".6">plan del PDF</text></svg>
-      <div class="legend">${L.map((l, i) => `<div><i style="background:${cols[i]}"></i>${l.emoji} ${esc(l.cat)}<b>${num(l.eur)}</b></div>`).join('')}</div></div>
-      <div class="sec-title"><h2>Por familia</h2></div>
+    const L = window.BUDGET.lines, real = realByLine();
+    const totB = window.BUDGET.total, totR = Object.values(real).reduce((x, y) => x + y, 0), pct = Math.round(totR / totB * 100);
+    return head + `<div class="grid2 bvr" style="margin-top:14px">
+      <div class="card"><div class="label">📋 Presupuesto</div><div class="big">${eur(totB)}</div><div class="tiny">plan del PDF · ~${eur(window.BUDGET.perPerson)}/pers.</div></div>
+      <div class="card ${totR > totB ? 'over' : ''}"><div class="label">💳 Real</div><div class="big">${eur(Math.round(totR))}</div><div class="tiny">${pct} % del presupuesto${totR > totB ? ' · ¡nos pasamos!' : ''}</div></div></div>
+      <div class="bar" style="margin:12px 2px 0;height:12px"><i style="width:${Math.min(100, pct)}%"></i></div>
+      <div class="sec-title"><h2>Por partida</h2><span class="tiny">toca ＋ para apuntar lo pagado</span></div>
+      <div class="card">${L.map((l, i) => { const r = real[l.id] || 0, d = r - l.eur, w = l.eur ? Math.min(100, r / l.eur * 100) : (r ? 100 : 0);
+        return `<div class="bline"><div class="row"><span style="font-size:20px">${l.emoji}</span><b class="grow">${esc(l.cat)}</b><button class="btn sm ghost" data-a="add-exp" data-line="${l.id}" aria-label="Apuntar gasto real">＋</button></div>
+        <div class="bar ${r > l.eur && l.eur ? 'over' : ''}"><i style="width:${w}%"></i></div>
+        <div class="row tiny" style="justify-content:space-between"><span>Presup. <b>${eur(l.eur)}</b></span><span>Real <b>${eur(Math.round(r))}</b></span>
+        <span class="${r === 0 ? '' : d > 0 ? 'neg' : 'pos'}">${r === 0 ? 'sin apuntar' : Math.abs(d) < 1 ? 'clavado ✓' : (d > 0 ? '+' : '−') + eur(Math.abs(Math.round(d)))}</span></div></div>`; }).join('')}</div>
+      <div class="sec-title"><h2>Coste por familia (plan)</h2></div>
       <div class="card">${fams().map(f => `<div class="rank"><span style="font-size:22px">${f.emoji}</span><span class="grow"><b>${esc(f.name)}</b><div class="tiny">${members().filter(m => m.fam === f.id).length} personas</div></span><b>~${eur(window.BUDGET.families[f.id])}</b></div>`).join('')}
-      <p class="tiny">Vuelos por persona (720 €), Hard Rock por habitación, Montreal por familia (200 $). Villa, transfer, súper, chef y quads se reparten por cabeza (477 $/pers.). Tipo supuesto 1 € ≈ ${S.fx.USD} $.</p></div>
-      <div class="card"><b>🔎 Por confirmar</b><p class="muted" style="margin:6px 0 0">Qué villa elegimos y si el chef está incluido. Rango del total: 30.650 $ – 34.970 $.</p></div>`;
+      <p class="tiny">El "real" suma lo que apuntáis en Gastos con su partida. Los gastos del día a día van a "Gastos en destino". Tipo de cambio 1 € ≈ ${S.fx.USD} $.</p></div>`;
   }
   if (t === 'pay') return head + `<div style="margin-top:14px">${window.MILESTONES.map((p, pi) => { const n = fams().filter(f => S.paid[p.id]?.[f.id]).length; return `<div class="card">
     <div class="row"><div class="kind" style="background:#FFE7A8">${p.emoji}</div><div class="grow"><b>${pi + 1}. ${esc(p.title)}</b><div class="tiny">${esc(p.detail)}</div></div><b>${esc(p.amount)}</b></div>
@@ -556,7 +598,7 @@ function wallet() {
     <div class="card">${tr.length ? tr.map(x => `<div class="settle"><span>${who(x.from)}</span><span class="arrow">→</span><span class="grow">${who(x.to)}</span><b>${eur(Math.round(x.amt))}</b></div>`).join('') : '<div class="muted">Todo cuadrado 🎉 Nadie debe nada.</div>'}</div>
     <div class="sec-title"><h2>Gastos</h2><span class="tiny">${S.expenses.length}</span></div>
     <div class="card">${S.expenses.slice().reverse().map(e => `<div class="exp"><div class="ic">${(CATS.find(c => c[0] === e.cat) || CATS[6])[1]}</div>
-      <div class="grow"><b class="ellipsis" style="display:block">${esc(e.title)}</b><div class="tiny">${mem(e.payer).avatar} ${esc(mem(e.payer).name)} · entre ${e.split.length}${e.photo ? ' · 📎 ticket' : ''}</div></div>
+      <div class="grow"><b class="ellipsis" style="display:block">${esc(e.title)}</b><div class="tiny">${mem(e.payer).avatar} ${esc(mem(e.payer).name)} · entre ${e.split.length} · ${esc((window.BUDGET.lines.find(l => l.id === (e.line || 'destino')) || {}).cat || '')}${e.photo ? ' · 📎 ticket' : ''}</div></div>
       <div><div class="amt">${num(e.amount)} ${CUR[e.cur]}</div>${e.cur !== 'EUR' ? `<div class="tiny" style="text-align:right">${eur(Math.round(toEur(e.amount, e.cur)))}</div>` : ''}</div>
       <button class="tiny" data-a="del-exp" data-id="${e.id}" aria-label="Borrar gasto">✕</button></div>`).join('') || '<div class="muted">Aún no hay gastos. En el Hard Rock casi no habrá 😎; en Las Terrenas: súper, luz, propinas, quads…</div>'}</div>`;
 }
@@ -670,20 +712,23 @@ const SUGGEST = ['¿Qué hacemos mañana?', '¿Dónde cenamos todos?', '¿Cuánt
 function ai() {
   const chat = S.chat.length ? S.chat : [{ role: 'bot', html: `¡Hola ${esc(me().name)}! Soy <b>Coco</b> 🥥, el concierge del club. Conozco el itinerario, los gastos, las votaciones y los gustos del grupo. Pregúntame lo que quieras.` }];
   return `<div class="page-head" style="text-align:center"><div class="coco">🥥</div><h1 style="font-size:28px">Coco · AI Concierge</h1><p>Sabe todo del viaje. Para preguntas abiertas, te paso a Claude con el contexto.</p></div>
-  <div class="suggest">${SUGGEST.map((s, i) => `<button data-a="ask" data-i="${i}">${s}</button>`).join('')}</div>
+  <div class="suggest-grid">${SUGGEST.map((s, i) => `<button data-a="ask" data-i="${i}">${s}</button>`).join('')}</div>
   <div class="chat" id="chat">${chat.map(m => `<div class="msg ${m.role}">${m.role === 'me' ? esc(m.text) : m.html}</div>`).join('')}</div>
   <form class="composer" id="ask"><input id="q" data-draft="q" value="${esc(S.drafts.q || '')}" placeholder="Pregúntale a Coco…" autocomplete="off"><button class="btn sea sm" type="submit">Enviar</button></form>
   <div class="row" style="margin-top:10px;gap:8px"><button class="btn ghost sm grow" data-a="claude">✨ Preguntar a Claude con el contexto</button><button class="btn ghost sm" data-a="clear-chat">Borrar</button></div>`;
 }
 after.ai = () => {
   $('#ask').addEventListener('submit', e => { e.preventDefault(); const q = $('#q').value.trim(); if (q) ask(q); });
-  window.scrollTo(0, document.body.scrollHeight);
+  // Tras responder: mostrar la pregunta y el principio de la respuesta, no saltar al final.
+  if (scrollToAnswer) { scrollToAnswer = false; const ms = document.querySelectorAll('#chat .msg.me'); const last = ms[ms.length - 1];
+    if (last) window.scrollTo({ top: last.getBoundingClientRect().top + scrollY - 80, behavior: 'smooth' }); }
 };
+let scrollToAnswer = false;
 function ask(q) {
   S.chat.push({ role: 'me', text: q }); S.drafts.q = ''; save(); render();
   const c = $('#chat'); c.insertAdjacentHTML('beforeend', '<div class="msg bot typing"><span></span><span></span><span></span></div>');
-  window.scrollTo(0, document.body.scrollHeight);
-  setTimeout(() => { S.chat.push({ role: 'bot', html: answer(q) }); S.chat = S.chat.slice(-40); save(); render(); }, 650);
+  c.lastElementChild.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  setTimeout(() => { S.chat.push({ role: 'bot', html: answer(q) }); S.chat = S.chat.slice(-40); save(); scrollToAnswer = true; render(); }, 650);
 }
 function answer(raw) {
   const q = raw.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -755,10 +800,15 @@ PREGUNTA: ${q}`;
 }
 
 // ---------- Sheets ----------
-function expenseSheet(photo) {
+function realByLine() {
+  const r = {}; S.expenses.forEach(e => { const k = e.line || 'destino'; r[k] = (r[k] || 0) + toEur(e.amount, e.cur); }); return r;
+}
+function expenseSheet(photo, line) {
+  const L = window.BUDGET.lines.find(l => l.id === line);
   const ms = members();
   sheet(`<h2>Nuevo gasto</h2>
-    <label class="field"><span>Concepto</span><input class="input" id="e-t" placeholder="Súper, luz de la villa, propinas…"></label>
+    <label class="field"><span>Concepto</span><input class="input" id="e-t" value="${L && L.id !== 'destino' ? esc(L.cat) : ''}" placeholder="Súper, luz de la villa, propinas…"></label>
+    <label class="field"><span>Partida del presupuesto</span><select class="input" id="e-l">${window.BUDGET.lines.map(l => `<option value="${l.id}" ${(line || 'destino') === l.id ? 'selected' : ''}>${l.emoji} ${esc(l.cat)}</option>`).join('')}</select></label>
     <div class="row" style="gap:8px"><label class="field grow"><span>Importe</span><input class="input" id="e-a" type="number" inputmode="decimal" step="0.01"></label>
     <label class="field" style="width:110px"><span>Moneda</span><select class="input" id="e-c"><option>EUR</option><option>USD</option><option>DOP</option></select></label></div>
     <label class="field"><span>Categoría</span><div class="pickers" id="e-cat">${CATS.map((c, i) => `<button type="button" class="${i === 0 ? 'on' : ''}" data-v="${c[0]}">${c[1]} ${c[0]}</button>`).join('')}</div></label>
@@ -786,7 +836,7 @@ async function saveExpense() {
   const split = mode === 'all' ? ms.map(m => m.id) : mode === 'adults' ? ms.filter(m => m.kind === 'adult').map(m => m.id)
     : mode === 'mine' ? ms.filter(m => m.fam === me().fam).map(m => m.id) : [...document.querySelectorAll('#e-who .on')].map(b => b.dataset.v);
   if (!split.length) return toast('Elige al menos una persona');
-  const e = { id: uid(), title, amount, cur: $('#e-c').value, cat: $('#e-cat .on').dataset.v, payer: $('#e-p').value, split, ts: Date.now() };
+  const e = { id: uid(), title, amount, cur: $('#e-c').value, cat: $('#e-cat .on').dataset.v, line: $('#e-l').value, payer: $('#e-p').value, split, ts: Date.now() };
   const f = $('#e-f').files[0];
   if (f) { e.photo = 'tk-' + e.id; await idb.put(e.photo, await shrink(f, 1000)); }
   S.expenses.push(e); award(S.me, 5, 'gasto apuntado', 'exp-' + e.id); save(); closeSheet(); render();
@@ -795,12 +845,10 @@ function settingsSheet() {
   sheet(`<h2>${me().avatar} Tu perfil</h2>
     <label class="field"><span>Nombre</span><input class="input" id="s-n" value="${esc(me().name)}"></label>
     <label class="field"><span>Avatar</span><div class="pickers" id="s-av">${['😎', '🌺', '🏄', '🍹', '⚽', '🌞', '🥥', '🎸', '🐢', '🦀', '🐠', '🦜', '🐙', '🎧', '🦈', '🐳', '🦩', '🧉', '👑', '🤿'].map(a => `<button type="button" class="${a === me().avatar ? 'on' : ''}">${a}</button>`).join('')}</div></label>
-    <label class="field"><span>PIN personal (opcional, 4 cifras)</span><input class="input" id="s-pin" inputmode="numeric" maxlength="4" value="${esc(S.pins[S.me] || '')}" placeholder="Para que nadie entre como tú en un móvil compartido"></label>
     <button class="btn sea block" data-a="save-profile">Guardar</button>
     <div class="sec-title"><h2>Ajustes</h2></div>
     <label class="field"><span>Tema</span><div class="pickers" id="s-th">${[['auto', '🌗 Auto'], ['light', '☀️ Día'], ['dark', '🌙 Noche']].map(x => `<button type="button" class="${S.theme === x[0] ? 'on' : ''}" data-v="${x[0]}">${x[1]}</button>`).join('')}</div></label>
     <label class="field"><span>Enlace del grupo de WhatsApp</span><input class="input" id="s-wa" value="${esc(S.whatsapp)}" placeholder="https://chat.whatsapp.com/…"></label>
-    <label class="field"><span>Tipo de cambio (1 € =)</span><div class="row" style="gap:8px"><input class="input" id="s-usd" type="number" step="0.01" value="${S.fx.USD}"><span>$</span><input class="input" id="s-dop" type="number" step="1" value="${S.fx.DOP}"><span>RD$</span></div></label>
     <button class="btn ghost block" data-a="save-settings">Guardar ajustes</button>
     <div class="grid2"><button class="btn ghost" data-a="notif">🔔 Notificaciones</button><button class="btn ghost" data-a="music">${Music.playing ? '🔇 Silenciar música' : '🎶 Poner música'}</button></div>
     <button class="btn ghost block" style="margin-top:10px" data-a="credits">📷 Créditos de fotos</button>
@@ -850,11 +898,10 @@ function photoSheet(id) {
 
 // ---------- Banda sonora: Juan Luis Guerra (reproductor oficial de YouTube incrustado) ----------
 // No se puede alojar su audio (copyright); el embed oficial sí es legal. Vídeos verificados por oEmbed el 30/10/2026.
-const SOUNDTRACK = [
+const SOUNDTRACK = [ // se irá ampliando con los gustos del grupo
   { id: 'AWozq4Phckc', t: 'La Travesía', a: 'Juan Luis Guerra' }, // canción de entrada (elegida por María)
-  { id: 'v0ckuv1xBm0', t: 'Burbujas de Amor', a: 'Juan Luis Guerra 4.40' },
-  { id: '_4NBD3SqBwg', t: 'Bachata en Fukuoka', a: 'Juan Luis Guerra' },
-  { id: 'x3G4VFThbEg', t: 'La Bilirrubina', a: 'Juan Luis Guerra 4.40' },
+  { id: '8_QY5gFQUTg', t: 'Obsesión', a: 'Aventura ft. Judy Santos' },
+  { id: 'VUIgT-E4IS0', t: 'Dame Hombro', a: 'Bulin 47 x Kevin Wai' },
 ];
 const Music = (() => {
   let cur = -1;
@@ -919,10 +966,9 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 // ---------- Actions (delegated; handlers by id/index, never by text) ----------
 const A = {
   go: d => { if (d.sub) sub[d.r] = d.sub; closeSheet(true); go(d.r); },
-  sub: d => { sub[d.k] = d.v; if (d.k === 'games') sub.reveal = false; render(); },
+  sub: d => { sub[d.k] = d.v; if (d.k === 'games') sub.reveal = false; if (d.k === 'zone') sub.view = d.v === 'yul' ? 'yul' : (sub.view === 'yul' ? 'all' : sub.view); render(); },
   'close-sheet': () => closeSheet(),
   'pick-me': d => {
-    if (S.pins[d.id] && prompt(`PIN de ${mem(d.id).name}`) !== S.pins[d.id]) return toast('PIN incorrecto 🔒');
     S.me = d.id; S.ui = { route: 'home', sub: {} }; sub = {}; save(); render(); confetti(); toast(`¡Bienvenid@ al club, ${mem(d.id).name}! 🌴`);
   },
   back: () => back(),
@@ -942,17 +988,19 @@ const A = {
     const w = S.wish[d.id] = S.wish[d.id] || []; const i = w.indexOf(S.me); i >= 0 ? w.splice(i, 1) : w.push(S.me); save();
     if (d.keep) { const p = [...window.PLACES, ...window.ICONIC].find(x => x.id === d.id); placeSheet(p, p.id[0] === 'i'); } else render();
   },
-  mapview: d => { sub.view = d.v; S.ui.sub = sub; save(); animateView(VIEWS[d.v]); document.querySelectorAll('.map-zoom button').forEach(b => b.classList.toggle('on', b.dataset.v === d.v)); },
+  mapview: d => {
+    const was = sub.view; sub.view = d.v; if (d.v === 'yul') sub.zone = 'yul'; else if (sub.zone === 'yul') sub.zone = 'all';
+    S.ui.sub = sub; save(); if (d.v === 'yul' || was === 'yul') return render(); animateView(VIEWS[d.v]); document.querySelectorAll('.map-zoom button').forEach(b => b.classList.toggle('on', b.dataset.v === d.v)); },
   place: d => placeSheet(window.PLACES.find(p => p.id === d.id)),
   iconic: d => placeSheet(window.ICONIC.find(p => p.id === d.id), true),
-  credits: () => sheet(`<h2>📷 Créditos de fotos</h2><p class="muted">Fotos reales de Wikimedia Commons con licencia libre.</p>${Object.entries(window.CREDITS).map(([k, c]) => `<div class="exp"><div class="ic" style="background:center/cover url(img/${k}.jpg)"></div><div class="grow"><b>${esc(c.a)}</b><div class="tiny">${esc(c.l)}</div></div><a class="btn sm ghost" href="${esc(c.u)}" target="_blank" rel="noopener">Ver</a></div>`).join('')}<p class="tiny">Mapa: Natural Earth (dominio público). Música: vídeos oficiales de Juan Luis Guerra en YouTube (reproductor incrustado).</p>`),
+  credits: () => sheet(`<h2>📷 Créditos de fotos</h2><p class="muted">Fotos reales de Wikimedia Commons con licencia libre.</p>${Object.entries(window.CREDITS).map(([k, c]) => `<div class="exp"><div class="ic" style="background:center/cover url(img/${k}.jpg)"></div><div class="grow"><b>${esc(c.a)}</b><div class="tiny">${esc(c.l)}</div></div><a class="btn sm ghost" href="${esc(c.u)}" target="_blank" rel="noopener">Ver</a></div>`).join('')}<p class="tiny">Mapa: Natural Earth (dominio público). Música: vídeos oficiales en YouTube (Juan Luis Guerra, Aventura, Bulin 47), reproductor incrustado.</p>`),
   paid: d => {
     const p = window.MILESTONES[+d.p]; const x = S.paid[p.id] = S.paid[p.id] || {}; x[d.f] = !x[d.f];
     if (x[d.f]) { members().filter(m => m.fam === d.f && m.kind === 'adult').forEach(m => award(m.id, 25, 'pago hecho', `pay-${p.id}-${m.id}`)); confetti(14); }
     save(); render();
   },
   'toggle-fam': () => { S.settleByFam = !S.settleByFam; save(); render(); },
-  'add-exp': d => expenseSheet(!!d.photo),
+  'add-exp': d => expenseSheet(!!d.photo, d.line),
   'save-exp': () => saveExpense(),
   'del-exp': d => { if (!confirm('¿Borrar este gasto?')) return; const e = S.expenses.find(x => x.id === d.id); if (e?.photo) idb.del(e.photo); S.expenses = S.expenses.filter(x => x.id !== d.id); save(); render(); },
   post: () => { const t = $('#post').value.trim(); if (!t) return; S.posts.push({ id: uid(), by: S.me, text: t, ts: Date.now() }); S.drafts.post = ''; save(); render(); toast('Publicado 📌'); },
@@ -1040,13 +1088,11 @@ const A = {
   'notif-hide': () => { S.notifHidden = true; save(); render(); },
   settings: () => settingsSheet(),
   'save-profile': () => {
-    const pin = $('#s-pin').value.trim(); if (pin && !/^\d{4}$/.test(pin)) return toast('El PIN son 4 cifras');
-    S.names[S.me] = $('#s-n').value.trim() || undefined; S.avatars[S.me] = $('#s-av .on')?.textContent; S.pins[S.me] = pin || undefined;
+    S.names[S.me] = $('#s-n').value.trim() || undefined; S.avatars[S.me] = $('#s-av .on')?.textContent;
     save(); closeSheet(); render(); toast('Perfil guardado ✓');
   },
   'save-settings': () => {
     S.theme = $('#s-th .on').dataset.v; const wa = $('#s-wa').value.trim(); S.whatsapp = /^https:\/\/(chat\.whatsapp\.com|wa\.me)\//.test(wa) ? wa : '';
-    S.fx.USD = parseFloat($('#s-usd').value) || T.fx.USD; S.fx.DOP = parseFloat($('#s-dop').value) || T.fx.DOP;
     save(); closeSheet(); render(); toast('Ajustes guardados');
   },
   export: () => { const b = new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'rd-trip-club.json'; a.click(); },

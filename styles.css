@@ -441,3 +441,29 @@ textarea.input { height: 90px; padding: 12px 14px; resize: none; }
 .song-card .disc { font-size: 30px; animation: spin 6s linear infinite; display: inline-block; width: 36px; }
 .song-card b { font-size: 14px; line-height: 1.15; } .song-card .tiny { color: rgba(255, 255, 255, .85); }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- Montreal ---------- */
+.mapwrap.mtl { background: linear-gradient(180deg, #9FDDF0, #6CC3E0); }
+#mtlmap { display: block; width: 100%; height: auto; }
+#mtlmap .dom { fill: #FFF3D6; stroke: #fff; stroke-width: 2; vector-effect: non-scaling-stroke; filter: drop-shadow(0 2px 3px rgba(11, 58, 83, .25)); }
+#mtlmap .land2 { fill: #E9EEF0; stroke: #fff; stroke-width: 1.5; opacity: .85; }
+#mtlmap .country { font: 800 9px var(--font); letter-spacing: .22em; fill: #0B3A53; opacity: .3; }
+#mtlmap .route { fill: none; stroke: #FF6B5B; stroke-width: 2.4; stroke-dasharray: 6 5; stroke-linecap: round; animation: dash 1.6s linear infinite; }
+#mtlmap .mlbl { font: 800 10px var(--font); fill: #FF6B5B; }
+#mtlmap .pin .hit { fill: transparent; } #mtlmap .pin.our circle:not(.hit) { fill: #1DB980; stroke: #fff; stroke-width: 1.5; }
+#mtlmap .memo { font-size: 10px; } #mtlmap .lbl2 { font: 800 8px var(--font); fill: #fff; }
+/* ---------- Presupuesto vs real ---------- */
+.bvr .big { font: 800 26px/1.1 var(--font-display); margin: 6px 0 2px; }
+.bvr .card.over { background: linear-gradient(135deg, rgba(255, 107, 91, .18), rgba(255, 143, 177, .14)); }
+.bline { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.bline:last-of-type { border-bottom: 0; }
+.bline .bar { margin: 8px 0 6px; height: 8px; }
+.bar.over i { background: linear-gradient(90deg, var(--mango), var(--coral)); }
+/* ---------- Coco: sugerencias en cuadrícula ---------- */
+.suggest-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 6px 0 14px; }
+.suggest-grid button { padding: 11px 12px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); font-weight: 700; font-size: 13px; text-align: left; line-height: 1.25; box-shadow: var(--shadow-sm); }
+.suggest-grid button:active { transform: scale(.97); }
+.card.fx { margin-bottom: 12px; }
+.fx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.fx-grid label { display: flex; align-items: center; gap: 6px; }
+.fx-grid .input { height: 42px; padding: 0 10px; }

@@ -133,7 +133,7 @@ window.FLIGHTS = [
 
 window.STAYS = [
   { id: 's1', zone: 'yul', name: 'Hotel aeropuerto YUL', dates: '13 → 14 ago · 1 noche (vuelo a las 09:20)', price: '~200 $ por familia', status: 'pendiente', img: 'p16', imgCap: 'Poutine, la cena típica de Montreal' },
-  { id: 's2', zone: 'ltr', name: 'Villa en Las Terrenas', dates: '14 → 18 ago · 4 noches', price: '3.000–6.100 € (+ luz según villa) · 8 candidatas', status: 'votación', poll: 'p1', img: 'villa', imgCap: 'Playa Cosón, la playa de las villas' },
+  { id: 's2', zone: 'ltr', name: 'Villa en Las Terrenas', dates: '14 → 18 ago · 4 noches', price: '2.608–5.838 € en Airbnb (+ luz según villa) · 8 candidatas', status: 'votación', poll: 'p1', img: 'villa', imgCap: 'Playa Cosón, la playa de las villas' },
   { id: 's3', zone: 'puj', name: 'Hard Rock Punta Cana', dates: '18 → 25 ago · 7 noches', price: '11.257 $ · 4 habitaciones', status: 'pendiente', img: 'hardrock', imgCap: 'Hard Rock Hotel & Casino Punta Cana',
     rooms: [
       { fam: 'f1', label: '2A + 1 niño', price: 2700 },
@@ -145,30 +145,31 @@ window.STAYS = [
 ];
 
 window.VILLAS = [
-  { id: 'v1', url: 'https://www.airbnb.es/rooms/1017327979722645721?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Casa del Río · Playa Cosón', meta: '9 dorm · 16 camas · 8,5 baños', rating: 4.83, price: 3000, tags: ['Favorita', 'Chef y personal incluidos', 'Frente al mar', 'Luz incluida (según el anuncio)'] },
-  { id: 'v2', url: 'https://www.airbnb.es/rooms/10182938?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa tropical beachfront', meta: '8 dorm · 12 camas · 8 baños', rating: 4.86, price: 3200, tags: ['Primera línea', 'Piscina'] },
-  { id: 'v3', url: 'https://www.airbnb.es/rooms/1886712?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Casa Coco · a 50 m de Cosón', meta: '7 dorm · 11 camas · 6,5 baños', rating: 4.87, price: 3600, tags: ['Chef opcional'] },
-  { id: 'v4', url: 'https://www.airbnb.es/rooms/1138147595655505633?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa Balboa · Cap Bonita', meta: '6 dorm · 9 camas · 6,5 baños', rating: 4.91, price: 4500, tags: ['Acceso playa VIP', '+45 $/noche luz'] },
-  { id: 'v5', url: 'https://www.airbnb.es/rooms/1592054430164573904?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa de lujo · Río Cosón', meta: '6 dorm · 18 camas · 6,5 baños', rating: 4.75, price: 6100, tags: ['Chef incluido', '+300 € luz'] },
-  { id: 'v6', url: 'https://www.airbnb.es/rooms/1790162866194806261?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa Angela · El Portillo', meta: '5 dorm · 9 camas · 5 baños · hasta 16', rating: null, price: null, tags: ['Frente a la playa', 'Nueva: sin reseñas'] },
-  { id: 'v7', url: 'https://www.airbnb.es/rooms/1605852786416374364?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villas Paul · Portillo', meta: '6 dorm · 6 camas · 5,5 baños', rating: 5.0, price: null, tags: ['Mayordomo y cocineros', 'Comunidad privada', 'Ojo: solo 6 camas'] },
-  { id: 'v8', url: 'https://www.airbnb.es/rooms/7179978?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa única frente a la playa', meta: '8 dorm · 9 camas · 7 baños · 14–17 plazas', rating: 4.79, price: null, tags: ['Frente a la playa'] },
+  { id: 'v1', url: 'https://www.airbnb.es/rooms/1017327979722645721?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Casa del Río · Playa Cosón', meta: '9 dorm · 16 camas · 8,5 baños', rating: 4.83, price: 5838, tags: ['Favorita', 'Chef y personal incluidos', 'Frente al mar', 'Luz incluida (según el anuncio)'] },
+  { id: 'v2', url: 'https://www.airbnb.es/rooms/10182938?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa tropical beachfront', meta: '8 dorm · 12 camas · 8 baños', rating: 4.86, price: 3086, tags: ['Primera línea', 'Piscina'] },
+  { id: 'v3', url: 'https://www.airbnb.es/rooms/1886712?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Casa Coco · a 50 m de Cosón', meta: '7 dorm · 11 camas · 6,5 baños', rating: 4.87, price: 3422, tags: ['Chef opcional'] },
+  { id: 'v4', url: 'https://www.airbnb.es/rooms/1138147595655505633?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa Balboa · Cap Bonita', meta: '6 dorm · 9 camas · 6,5 baños', rating: 4.91, price: 4517, tags: ['Acceso playa VIP', '+45 $/noche luz'] },
+  { id: 'v5', url: 'https://www.airbnb.es/rooms/1592054430164573904?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa de lujo · Río Cosón', meta: '6 dorm · 18 camas · 6,5 baños', rating: 4.75, price: 2608, tags: ['Chef incluido', 'Oferta: antes 3.029 €', '+300 € luz'] },
+  { id: 'v6', url: 'https://www.airbnb.es/rooms/1790162866194806261?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa Angela · El Portillo', meta: '5 dorm · 9 camas · 5 baños · hasta 16', rating: null, price: 4568, tags: ['Frente a la playa', 'Nueva: sin reseñas'] },
+  { id: 'v7', url: 'https://www.airbnb.es/rooms/1605852786416374364?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villas Paul · Portillo', meta: '6 dorm · 6 camas · 5,5 baños', rating: 5.0, price: 2683, tags: ['Mayordomo y cocineros', 'Comunidad privada', 'Ojo: solo 6 camas'] },
+  { id: 'v8', url: 'https://www.airbnb.es/rooms/7179978?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa única frente a la playa', meta: '8 dorm · 9 camas · 7 baños · 14–17 plazas', rating: 4.79, price: 5398, tags: ['Frente a la playa'] },
 ];
 
-// url: anuncio de Airbnb (María, 30/10), con fechas 14–18 ago y 16 huéspedes. price null = por confirmar.
+// url: anuncio de Airbnb (María, 30/10). price = total de Airbnb para 14–18 ago 2027 y 16 huéspedes, consultado el 30/10/2026.
 // Las opciones de la encuesta p1 van en el mismo orden (los votos se guardan por índice: añadir siempre al final).
 // Presupuesto del grupo (PDF pág. 5). EUR.
 window.BUDGET = {
   total: 28340, perPerson: 1770,
   lines: [
-    { cat: 'Vuelos', emoji: '✈️', eur: 11520, calc: '16 × 720 €' },
-    { cat: 'Hotel Montreal', emoji: '🍁', eur: 684, calc: '4 familias × 200 $' },
-    { cat: 'Transfer PUJ ⇄ LTR', emoji: '🚐', eur: 940, calc: 'Ida y vuelta, precio cerrado' },
-    { cat: 'Villa (media)', emoji: '🏡', eur: 4550, calc: '(3.000 + 6.100) ÷ 2' },
-    { cat: 'Súper para el chef', emoji: '🛒', eur: 427, calc: '~3 días' },
-    { cat: 'Chef', emoji: '👨‍🍳', eur: 256, calc: '0 si la villa lo incluye' },
-    { cat: 'Quads (opcional)', emoji: '🏍️', eur: 342, calc: '8 quads × 1 día' },
-    { cat: 'Hard Rock', emoji: '🎸', eur: 9621, calc: '3 × 2.700 $ + 3.157 $' },
+    { id: 'flights', cat: 'Vuelos', emoji: '✈️', eur: 11520, calc: '16 × 720 €' },
+    { id: 'yul', cat: 'Hotel Montreal', emoji: '🍁', eur: 684, calc: '4 familias × 200 $' },
+    { id: 'transfer', cat: 'Transfer PUJ ⇄ LTR', emoji: '🚐', eur: 940, calc: 'Ida y vuelta, precio cerrado' },
+    { id: 'villa', cat: 'Villa (media)', emoji: '🏡', eur: 4550, calc: '(3.000 + 6.100) ÷ 2' },
+    { id: 'super', cat: 'Súper para el chef', emoji: '🛒', eur: 427, calc: '~3 días' },
+    { id: 'chef', cat: 'Chef', emoji: '👨‍🍳', eur: 256, calc: '0 si la villa lo incluye' },
+    { id: 'quads', cat: 'Quads (opcional)', emoji: '🏍️', eur: 342, calc: '8 quads × 1 día' },
+    { id: 'hardrock', cat: 'Hard Rock', emoji: '🎸', eur: 9621, calc: '3 × 2.700 $ + 3.157 $' },
+    { id: 'destino', cat: 'Gastos en destino', emoji: '🧾', eur: 0, calc: 'Sin presupuesto en el PDF (todo incluido en el Hard Rock)' },
   ],
   families: { f1: 5860, f2: 5860, f3: 8115, f4: 8505 },
 };
@@ -206,11 +207,18 @@ window.PLACES = [
   { id: 'p13', lat: 18.77, lon: -68.53, img: 'p13', zone: 'puj', cat: 'playa', name: 'Playa Macao', emoji: '🏄', desc: 'Playa virgen con olas para surf, a 20 min del Hard Rock.', q: 'Playa Macao' },
   { id: 'p14', lat: 18.745, lon: -68.46, img: 'p14', zone: 'puj', cat: 'playa', name: 'Playa del Hard Rock', emoji: '🎸', desc: 'La de casa, en la costa de Macao–Bávaro (foto: Bávaro): hamacas y barra libre.', q: 'Hard Rock Hotel Punta Cana', kids: true },
   { id: 'p15', lat: 18.745, lon: -68.455, img: 'p15', zone: 'puj', cat: 'kids', name: 'Hard Rock: piscinas y kids club', emoji: '🧸', desc: 'Piscinas enormes y kids club, para que los mayores tengan su rato de bachata.', q: 'Hard Rock Hotel Punta Cana', kids: true },
-  { id: 'p16', lat: 45.47, lon: -73.74, offmap: true, img: 'p16', zone: 'yul', cat: 'comida', name: 'Poutine en Montreal', emoji: '🍟', desc: 'Si la noche da para un paseo: probad la poutine antes de dormir.', q: 'poutine near Montreal airport' },
+  { id: 'p16', lat: 45.4577, lon: -73.7497, img: 'p16', zone: 'yul', cat: 'comida', name: 'Poutine junto al aeropuerto', emoji: '🍟', desc: 'Si llegáis cansados: poutine o pollo en Poulet Rouge (YUL), al lado del hotel.', q: 'Poulet Rouge Aéroport Montréal-Trudeau', kids: true },
+  { id: 'y1', lat: 45.5075, lon: -73.5545, img: 'mtl_vieux', zone: 'yul', cat: 'excursion', name: 'Vieux-Montréal', emoji: '🏰', desc: 'Calles empedradas del siglo XVII, rue Saint-Paul y place Jacques-Cartier. El paseo imprescindible de la noche del 13.', q: 'Vieux-Montréal', kids: true },
+  { id: 'y2', lat: 45.5045, lon: -73.5562, img: 'mtl_notre', zone: 'yul', cat: 'excursion', name: 'Basílica de Notre-Dame', emoji: '⛪', desc: 'Interior azul y dorado espectacular. Por la noche hacen el espectáculo de luz AURA (consultad horarios y reservad).', q: 'Basilique Notre-Dame de Montréal', kids: true },
+  { id: 'y3', lat: 45.5079, lon: -73.5490, img: 'mtl_port', zone: 'yul', cat: 'excursion', name: 'Vieux-Port y Grande Roue', emoji: '🎡', desc: 'Paseo junto al río San Lorenzo y la noria gigante con vistas de la ciudad. Perfecto con peques.', q: 'La Grande roue de Montréal', kids: true },
+  { id: 'y4', lat: 45.5038, lon: -73.5874, img: 'mtl_royal', zone: 'yul', cat: 'excursion', name: 'Mont-Royal · Belvédère Kondiaronk', emoji: '🌄', desc: 'El mirador clásico sobre los rascacielos. Al atardecer de agosto, vistas de postal (se sube en coche/taxi casi hasta arriba).', q: 'Belvédère Kondiaronk', kids: true },
+  { id: 'y5', lat: 45.5226, lon: -73.6026, img: 'mtl_bagel', zone: 'yul', cat: 'comida', name: 'St-Viateur Bagel', emoji: '🥯', desc: 'Los bagels de Montreal, hechos a mano en horno de leña. El local original abre 24 h: ideal para llevar al hotel.', q: 'St-Viateur Bagel 263 Saint-Viateur Ouest', kids: true },
+  { id: 'y6', lat: 45.5166, lon: -73.5779, zone: 'yul', cat: 'comida', name: "Schwartz's Deli", emoji: '🥪', desc: 'Sándwich de smoked meat, institución desde 1928. Suele haber cola.', q: "Schwartz's Deli Montreal", kids: true },
+  { id: 'y7', lat: 45.5363, lon: -73.6147, img: 'mtl_talon', zone: 'yul', cat: 'compras', name: 'Marché Jean-Talon', emoji: '🍓', desc: 'Mercado al aire libre con fruta de temporada de Quebec. Cierra por la tarde: difícil con nuestros horarios.', q: 'Marché Jean-Talon', kids: true },
 ];
 
 window.POLLS = [
-  { id: 'p1', q: '¿Qué villa reservamos en Las Terrenas?', emoji: '🏡', options: ['Casa del Río · 3.000 €', 'Tropical beachfront · 3.200 €', 'Casa Coco · 3.600 €', 'Villa Balboa · 4.500 €', 'Lujo Río Cosón · 6.100 €', 'Villa Angela · El Portillo', 'Villas Paul · Portillo', 'Villa única frente a la playa'] },
+  { id: 'p1', q: '¿Qué villa reservamos en Las Terrenas?', emoji: '🏡', options: ['Casa del Río · 5.838 €', 'Tropical beachfront · 3.086 €', 'Casa Coco · 3.422 €', 'Villa Balboa · 4.517 €', 'Lujo Río Cosón · 2.608 €', 'Villa Angela · 4.568 €', 'Villas Paul · 2.683 €', 'Villa única frente a la playa · 5.398 €'] },
   { id: 'p2', q: '¿Transfer privado o coches de alquiler?', emoji: '🚐', options: ['Transfer privado (1.100 $)', 'Alquilar 2–3 coches'] },
   { id: 'p3', q: '¿Quads al Salto El Limón?', emoji: '🏍️', options: ['¡Sí, todos!', 'Solo adultos', 'Paso'] },
   { id: 'p4', q: 'Excursión estrella desde Punta Cana', emoji: '⭐', options: ['Isla Saona', 'Catamarán party', 'Hoyo Azul', 'Nada, resort a muerte'] },
@@ -327,4 +335,14 @@ window.TIPS = [
   ['🔒', 'Seguridad', 'Pocos objetos de valor en la playa, nada a la vista en el coche y taxi de noche.'],
   ['🤝', 'Regateo', 'Normal en mercados y con vendedores de playa (empezad un 30–40 % por debajo). En tiendas de precio fijo, no.'],
   ['🗣️', 'Frases', '"¿Cuánto e\' todo?" · "¿Tiene pescado con coco?" · "Un chin" (un poquito) · "¿Qué lo que?"'],
+];
+
+// Montreal: lo que da tiempo de verdad con nuestros vuelos.
+window.MTL_PLAN = [
+  ['🛬', 'Vie 13 · 17:20', 'Aterrizaje en YUL. Hotel del aeropuerto y dejar maletas (~18:30).'],
+  ['🚕', '19:00', 'Al centro: taxi ~25–30 min o bus 747 (24 h) hasta Vieux-Montréal.'],
+  ['🏰', '19:30–21:30', 'Paseo por Vieux-Montréal, Notre-Dame por fuera y Vieux-Port con la noria.'],
+  ['🥯', '21:30', 'Cena rápida (Schwartz\'s o bagels de St-Viateur) y vuelta al hotel.'],
+  ['⏰', 'Sáb 14 · 06:30', 'Arriba temprano: vuelo TS0398 a las 09:20.'],
+  ['🔁', 'Mié 25', 'Vuelta: solo 4 h 10 min de escala. No da para salir de la terminal.'],
 ];
