@@ -235,7 +235,16 @@ function safeRender() {
 const members = () => [...window.MEMBERS, ...S.extra].filter(m => !S.removed.includes(m.id)).map(m => ({ ...m, name: S.names[m.id] || m.name, avatar: S.avatars[m.id] || m.avatar }));
 const groupLine = () => { const ms = members(); const a = ms.filter(m => m.kind === 'adult').length, t = ms.filter(m => m.kind === 'teen').length, k = ms.filter(m => m.kind === 'kid').length;
   return `${ms.length} viajeros (${a} adultos${t ? `, ${t} teen` : ''}${k ? `, ${k} peques` : ''})`; };
-const voteOf = (p, id) => { const x = S.votes[p.id]?.[id]; return x != null && !(p.hidden || []).includes(x) ? x : null; };
+const voteOf = (p, id) => pollVotes(p)[dupOf()[id] || id] ?? null;
+// Persona repetida = mismo nombre (sin tildes/mayúsculas) en la misma familia. Cuenta el primer perfil (el original antes que los añadidos).
+const normName = n => (n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+const dupOf = () => { const seen = {}, d = {}; members().forEach(m => { const k = m.fam + '|' + normName(m.name); if (seen[k]) d[m.id] = seen[k]; else seen[k] = m.id; }); return d; };
+// Votos válidos de una encuesta: solo perfiles actuales, un voto por persona y sin opciones quitadas. Si el original no votó, vale el del repetido.
+function pollVotes(p) {
+  const hid = p.hidden || [], raw = S.votes[p.id] || {}, d = dupOf(), ids = new Set(members().map(m => m.id)), v = {};
+  Object.entries(raw).forEach(([id, x]) => { if (!ids.has(id) || hid.includes(x)) return; const k = d[id] || id; if (v[k] == null || k === id) v[k] = x; });
+  return v;
+}
 const mem = id => members().find(m => m.id === id) || { id, name: id === 'coco' ? 'Coco AI' : '¿?', avatar: id === 'coco' ? '🥥' : '👤', fam: '' };
 const fams = () => window.FAMILIES.map(f => ({ ...f, name: S.famNames[f.id] || f.name }));
 const fam = id => fams().find(f => f.id === id);
@@ -577,10 +586,10 @@ function trip() {
 function pollCard(p) {
   const pi = window.POLLS.indexOf(p);
   const hid = p.hidden || [];
-  const v = Object.fromEntries(Object.entries(S.votes[p.id] || {}).filter(([, x]) => !hid.includes(x)));
+  const v = pollVotes(p);
   const total = Object.keys(v).length;
-  const mine = v[S.me];
-  return `<div class="card"><b>${p.emoji} ${esc(p.q)}</b><div class="tiny">${total} de ${members().length} han votado</div>
+  const mine = v[dupOf()[S.me] || S.me];
+  return `<div class="card"><b>${p.emoji} ${esc(p.q)}</b><div class="tiny">${total} de ${members().length - Object.keys(dupOf()).length} han votado</div>
     ${p.options.map((o, i) => { if (hid.includes(i)) return ''; const c = Object.values(v).filter(x => x === i).length; const pct = total ? Math.round(c / total * 100) : 0;
       const link = p.id === 'p1' && window.VILLAS[i]?.url;
       return `<div class="poll-row"><button class="poll-opt ${mine === i ? 'mine' : ''}" data-a="vote" data-p="${pi}" data-i="${i}"><i style="width:${mine != null ? pct : 0}%"></i><span>${esc(o)}</span>${mine != null ? `<b>${pct}%</b>` : ''}</button>${link ? `<a class="airbnb-mini" href="${esc(link)}" target="_blank" rel="noopener" aria-label="Ver en Airbnb">Airbnb ↗</a>` : ''}</div>${c ? `<div class="tiny voters">${Object.keys(v).filter(id => v[id] === i).map(id => `${mem(id).avatar} ${esc(mem(id).name)}`).join(' · ')}</div>` : ''}`; }).join('')}</div>`;
@@ -967,7 +976,7 @@ function answer(raw) {
     const pick = [...set].sort(() => Math.random() - .5).slice(0, 3);
     return `📜 Ahí van 3 curiosidades:<ul>${pick.map(h => `<li>${h[0]} <b>${esc(h[1])}:</b> ${esc(h[2])}</li>`).join('')}</ul>Más en Explora → Historia y curiosidades.`;
   }
-  if (has('villa', 'casa')) return `🏡 Quedan ${window.VILLAS.filter(v => !v.removed).length} villas candidatas en Las Terrenas. Votación actual: ${window.POLLS[0].options.map((o, i) => (window.POLLS[0].hidden || []).includes(i) ? '' : `${esc(o.split(' ·')[0])}: ${Object.values(S.votes.p1 || {}).filter(v => v === i).length}`).filter(Boolean).join(' · ')}.`;
+  if (has('villa', 'casa')) return `🏡 Quedan ${window.VILLAS.filter(v => !v.removed).length} villas candidatas en Las Terrenas. Votación actual: ${window.POLLS[0].options.map((o, i) => (window.POLLS[0].hidden || []).includes(i) ? '' : `${esc(o.split(' ·')[0])}: ${Object.values(pollVotes(window.POLLS[0])).filter(v => v === i).length}`).filter(Boolean).join(' · ')}.`;
   if (has('presupuesto', 'familia', 'cuanto cuesta', 'precio')) return `Presupuesto: <b>${eur(window.BUDGET.total)}</b> el grupo.<ul>${fams().map(f => `<li>${f.emoji} ${esc(f.name)}: ~${eur(window.BUDGET.families[f.id])}</li>`).join('')}</ul>`;
   return `Eso mejor lo piensa Claude con calma 🤓. Pulsa <b>✨ Preguntar a Claude</b>: copio tu pregunta con todo el contexto del viaje y abro claude.ai.<br><span class="tiny">Yo controlo: plan de hoy/mañana, gastos, pagos, lluvia, cenas, excursiones, vuelos, documentos, villa, presupuesto y música.</span>`;
 }
@@ -977,7 +986,7 @@ function tripContext(q) {
 VIAJE: 13–25 ago 2027. ${fams().length} familias, ${groupLine()}. Ruta: Barcelona → Montreal (1 noche) → Punta Cana → Las Terrenas, villa 14–18 ago (chef en casa) → Hard Rock Punta Cana todo incluido 18–25 ago.
 ITINERARIO: ${window.DAYS.map(d => `${d.date} ${d.title}: ${d.items.map(i => i.title).join(', ')}`).join(' | ')}
 PRESUPUESTO: ${window.BUDGET.total} € (~${window.BUDGET.perPerson} €/pers). Gastado en destino: ${Math.round(tot)} €.
-VOTACIONES: ${window.POLLS.map(p => `${p.q} → ${p.options.map((o, i) => (p.hidden || []).includes(i) ? '' : `${o}: ${Object.values(S.votes[p.id] || {}).filter(v => v === i).length}`).filter(Boolean).join(', ')}`).join(' | ')}
+VOTACIONES: ${window.POLLS.map(p => `${p.q} → ${p.options.map((o, i) => (p.hidden || []).includes(i) ? '' : `${o}: ${Object.values(pollVotes(p)).filter(v => v === i).length}`).filter(Boolean).join(', ')}`).join(' | ')}
 PLATOS FAVORITOS: ${S.dishes.map(d => `${d.name} (${d.for === 'kid' ? 'peques' : 'adultos'})`).join(', ') || '—'}
 CANCIONES: ${S.songs.map(s => `${s.title} – ${s.artist}`).join(', ') || '—'}
 
@@ -1051,7 +1060,7 @@ function settingsSheet() {
 function namesSheet() {
   sheet(`<h2>✏️ Nombres</h2>${fams().map(f => `<label class="field"><span>${f.emoji} Nombre de la familia</span><input class="input" data-fam="${f.id}" value="${esc(f.name)}"></label>
     <div class="stack" style="margin-bottom:14px">${members().filter(m => m.fam === f.id).map(m => `<div class="row" style="gap:8px"><span style="font-size:22px">${m.avatar}</span><input class="input grow" data-mem="${m.id}" value="${esc(m.name)}" aria-label="Nombre">
-      <button class="icon-btn" data-a="rm-member" data-id="${m.id}" aria-label="Quitar">✕</button></div>`).join('')}</div>`).join('')}
+      <button class="icon-btn" data-a="rm-member" data-id="${m.id}" aria-label="Quitar">✕</button></div>${dupOf()[m.id] ? '<div class="tiny" style="color:var(--coral);margin:-4px 0 4px 30px">⚠️ Repetido: su voto solo cuenta una vez. Quítalo con ✕.</div>' : ''}`).join('')}</div>`).join('')}
     <div class="card" style="margin-bottom:14px"><b>➕ Añadir persona</b>
       <input class="input" id="n-name" placeholder="Nombre" style="margin-top:8px">
       <div class="row" style="gap:8px;margin-top:8px"><select class="input" id="n-fam">${fams().map(f => `<option value="${f.id}">${f.emoji} ${esc(f.name)}</option>`).join('')}</select>
@@ -1186,7 +1195,7 @@ const A = {
   },
   vote: d => {
     const p = window.POLLS[+d.p]; const v = S.votes[p.id] = S.votes[p.id] || {};
-    v[S.me] = +d.i; award(S.me, 15, 'voto registrado', 'vote-' + p.id + S.me); save(); render();
+    v[dupOf()[S.me] || S.me] = +d.i; award(S.me, 15, 'voto registrado', 'vote-' + p.id + S.me); save(); render();
   },
   doc: d => { const x = window.DOCS_CHECKLIST[+d.i]; const m = S.docs[S.me] = S.docs[S.me] || {}; m[x.id] = !m[x.id]; if (window.DOCS_CHECKLIST.every(k => m[k.id])) { award(S.me, 50, 'papeles listos', 'docs-' + S.me); confetti(); } save(); render(); },
   wish: d => {
