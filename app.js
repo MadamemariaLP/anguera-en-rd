@@ -583,7 +583,7 @@ function pollCard(p) {
   return `<div class="card"><b>${p.emoji} ${esc(p.q)}</b><div class="tiny">${total} de ${members().length} han votado</div>
     ${p.options.map((o, i) => { if (hid.includes(i)) return ''; const c = Object.values(v).filter(x => x === i).length; const pct = total ? Math.round(c / total * 100) : 0;
       const link = p.id === 'p1' && window.VILLAS[i]?.url;
-      return `<div class="poll-row"><button class="poll-opt ${mine === i ? 'mine' : ''}" data-a="vote" data-p="${pi}" data-i="${i}"><i style="width:${mine != null ? pct : 0}%"></i><span>${esc(o)}</span>${mine != null ? `<b>${pct}%</b>` : ''}</button>${link ? `<a class="airbnb-mini" href="${esc(link)}" target="_blank" rel="noopener" aria-label="Ver en Airbnb">Airbnb ↗</a>` : ''}</div>`; }).join('')}</div>`;
+      return `<div class="poll-row"><button class="poll-opt ${mine === i ? 'mine' : ''}" data-a="vote" data-p="${pi}" data-i="${i}"><i style="width:${mine != null ? pct : 0}%"></i><span>${esc(o)}</span>${mine != null ? `<b>${pct}%</b>` : ''}</button>${link ? `<a class="airbnb-mini" href="${esc(link)}" target="_blank" rel="noopener" aria-label="Ver en Airbnb">Airbnb ↗</a>` : ''}</div>${c ? `<div class="tiny voters">${Object.keys(v).filter(id => v[id] === i).map(id => `${mem(id).avatar} ${esc(mem(id).name)}`).join(' · ')}</div>` : ''}`; }).join('')}</div>`;
 }
 
 // ---------- EXPLORE ----------
