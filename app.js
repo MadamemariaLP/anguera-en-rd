@@ -235,6 +235,7 @@ function safeRender() {
 const members = () => [...window.MEMBERS, ...S.extra].filter(m => !S.removed.includes(m.id)).map(m => ({ ...m, name: S.names[m.id] || m.name, avatar: S.avatars[m.id] || m.avatar }));
 const groupLine = () => { const ms = members(); const a = ms.filter(m => m.kind === 'adult').length, t = ms.filter(m => m.kind === 'teen').length, k = ms.filter(m => m.kind === 'kid').length;
   return `${ms.length} viajeros (${a} adultos${t ? `, ${t} teen` : ''}${k ? `, ${k} peques` : ''})`; };
+const voteOf = (p, id) => { const x = S.votes[p.id]?.[id]; return x != null && !(p.hidden || []).includes(x) ? x : null; };
 const mem = id => members().find(m => m.id === id) || { id, name: id === 'coco' ? 'Coco AI' : '¿?', avatar: id === 'coco' ? '🥥' : '👤', fam: '' };
 const fams = () => window.FAMILIES.map(f => ({ ...f, name: S.famNames[f.id] || f.name }));
 const fam = id => fams().find(f => f.id === id);
@@ -310,7 +311,7 @@ function badgesOf(id) {
   const water = ['c1', 'c7'].filter(c => S.challenges[c] === id).length;
   return {
     b1: water >= 2, b2: S.photos.filter(p => p.by === id).length >= 10, b3: !!S.missionDone[id],
-    b4: bingoLines(S.bingo[id] || []) > 0, b5: m.fam && famPaid(m.fam), b6: window.POLLS.every(p => S.votes[p.id]?.[id] != null),
+    b4: bingoLines(S.bingo[id] || []) > 0, b5: m.fam && famPaid(m.fam), b6: window.POLLS.every(p => voteOf(p, id) != null),
   };
 }
 
@@ -439,7 +440,7 @@ function welcome() {
 function home() {
   const n = nextActivity();
   const pending = window.MILESTONES.find(p => fams().some(f => !S.paid[p.id]?.[f.id]));
-  const openPoll = window.POLLS.find(p => S.votes[p.id]?.[S.me] == null);
+  const openPoll = window.POLLS.find(p => voteOf(p, S.me) == null);
   const word = window.LEXICON[Math.floor(Date.now() / 864e5) % window.LEXICON.length];
   const quick = [
     ['trip', '🗓️', 'Planes', '#A7F0E4'], ['explore', '🗺️', 'Mapa', '#7FDBFF'], ['wallet', '💸', 'Gastos', '#FFE7A8'], ['ai', '🥥', 'Coco AI', '#FFD1E1'],
@@ -537,8 +538,8 @@ function trip() {
       <div style="margin-top:8px;font-weight:800">${esc(s.price)}</div>
       ${s.rooms ? `<div style="margin-top:8px">${s.rooms.map(r => `<div class="settle"><span>${fam(r.fam).emoji}</span><span class="grow">${esc(fam(r.fam).name)} · ${esc(r.label)}</span><b>${num(r.price)} $</b></div>`).join('')}<p class="tiny">${esc(s.note)}</p></div>` : ''}
     </div>`).join('')}
-    <div class="sec-title"><h2>Villas candidatas</h2><span class="tiny">${window.VILLAS.length} opciones · Las Terrenas</span></div>
-    ${window.VILLAS.map((v, i) => `<div class="card villa"><div class="thumb">${['🏡', '🌴', '🥥', '🐚', '💎', '🌺', '🛎️', '🌊'][i] || '🏠'}</div><div class="grow">
+    <div class="sec-title"><h2>Villas candidatas</h2><span class="tiny">${window.VILLAS.filter(v => !v.removed).length} opciones · Las Terrenas</span></div>
+    ${window.VILLAS.map((v, i) => v.removed ? '' : `<div class="card villa"><div class="thumb">${['🏡', '🌴', '🥥', '🐚', '💎', '🌺', '🛎️', '🌊'][i] || '🏠'}</div><div class="grow">
       <b>${esc(v.name)}</b><div class="tiny">${esc(v.meta)} · ★ ${v.rating ? String(v.rating).replace('.', ',') : 'Nuevo'}</div>
       <div class="tags">${v.tags.map(x => `<span class="${x === 'Favorita' ? 'hot' : ''}">${esc(x)}</span>`).join('')}</div>
       <div style="margin-top:6px;font:800 18px var(--font-display)">${v.price ? `${eur(v.price)} <span class="tiny">total Airbnb · 4 noches · ${eur(Math.round(v.price / members().length))}/pers.</span>` : '<span class="tiny" style="font:700 13px var(--font)">Precio por confirmar · míralo en Airbnb</span>'}</div>
@@ -575,11 +576,12 @@ function trip() {
 // ---------- POLLS ----------
 function pollCard(p) {
   const pi = window.POLLS.indexOf(p);
-  const v = S.votes[p.id] || {};
+  const hid = p.hidden || [];
+  const v = Object.fromEntries(Object.entries(S.votes[p.id] || {}).filter(([, x]) => !hid.includes(x)));
   const total = Object.keys(v).length;
   const mine = v[S.me];
   return `<div class="card"><b>${p.emoji} ${esc(p.q)}</b><div class="tiny">${total} de ${members().length} han votado</div>
-    ${p.options.map((o, i) => { const c = Object.values(v).filter(x => x === i).length; const pct = total ? Math.round(c / total * 100) : 0;
+    ${p.options.map((o, i) => { if (hid.includes(i)) return ''; const c = Object.values(v).filter(x => x === i).length; const pct = total ? Math.round(c / total * 100) : 0;
       const link = p.id === 'p1' && window.VILLAS[i]?.url;
       return `<div class="poll-row"><button class="poll-opt ${mine === i ? 'mine' : ''}" data-a="vote" data-p="${pi}" data-i="${i}"><i style="width:${mine != null ? pct : 0}%"></i><span>${esc(o)}</span>${mine != null ? `<b>${pct}%</b>` : ''}</button>${link ? `<a class="airbnb-mini" href="${esc(link)}" target="_blank" rel="noopener" aria-label="Ver en Airbnb">Airbnb ↗</a>` : ''}</div>`; }).join('')}</div>`;
 }
@@ -776,7 +778,7 @@ function wallet() {
         <span class="${r === 0 ? '' : d > 0 ? 'neg' : 'pos'}">${r === 0 ? 'sin apuntar' : Math.abs(d) < 1 ? 'clavado ✓' : (d > 0 ? '+' : '−') + eur(Math.abs(Math.round(d)))}</span></div></div>`; }).join('')}</div>
       <div class="sec-title"><h2>Coste por familia (plan)</h2></div>
       <div class="card">${fams().map(f => `<div class="rank"><span style="font-size:22px">${f.emoji}</span><span class="grow"><b>${esc(f.name)}</b><div class="tiny">${members().filter(m => m.fam === f.id).length} personas</div></span><b>~${eur(window.BUDGET.families[f.id])}</b></div>`).join('')}
-      <p class="tiny">El "real" suma lo que apuntáis en Gastos con su partida. Los gastos del día a día van a "Gastos en destino". Tipo de cambio de hoy: 1 € ≈ ${S.fx.USD.toFixed(2).replace(".", ",")} $.</p></div>`;
+      <p class="tiny">El "real" suma los pagos marcados en ✅ Pagos y lo que apuntáis en Gastos con su partida (si una familia apunta su gasto real en esa partida, cuenta ese en lugar del previsto). Los gastos del día a día van a "Gastos en destino". Tipo de cambio de hoy: 1 € ≈ ${S.fx.USD.toFixed(2).replace(".", ",")} $.</p></div>`;
   }
   if (t === 'pay') return head + `<div style="margin-top:14px">${window.MILESTONES.map((p, pi) => { const n = fams().filter(f => S.paid[p.id]?.[f.id]).length; return `<div class="card">
     <div class="row"><div class="kind" style="background:#FFE7A8">${p.emoji}</div><div class="grow"><b>${pi + 1}. ${esc(p.title)}</b><div class="tiny">${esc(p.detail)}</div></div><b>${esc(p.amount)}</b></div>
@@ -965,7 +967,7 @@ function answer(raw) {
     const pick = [...set].sort(() => Math.random() - .5).slice(0, 3);
     return `📜 Ahí van 3 curiosidades:<ul>${pick.map(h => `<li>${h[0]} <b>${esc(h[1])}:</b> ${esc(h[2])}</li>`).join('')}</ul>Más en Explora → Historia y curiosidades.`;
   }
-  if (has('villa', 'casa')) return `🏡 La favorita es <b>Casa del Río</b> (3.000 €, chef y personal incluidos, frente al mar). Votación actual: ${window.POLLS[0].options.map((o, i) => `${esc(o.split(' ·')[0])}: ${Object.values(S.votes.p1 || {}).filter(v => v === i).length}`).join(' · ')}.`;
+  if (has('villa', 'casa')) return `🏡 Quedan ${window.VILLAS.filter(v => !v.removed).length} villas candidatas en Las Terrenas. Votación actual: ${window.POLLS[0].options.map((o, i) => (window.POLLS[0].hidden || []).includes(i) ? '' : `${esc(o.split(' ·')[0])}: ${Object.values(S.votes.p1 || {}).filter(v => v === i).length}`).filter(Boolean).join(' · ')}.`;
   if (has('presupuesto', 'familia', 'cuanto cuesta', 'precio')) return `Presupuesto: <b>${eur(window.BUDGET.total)}</b> el grupo.<ul>${fams().map(f => `<li>${f.emoji} ${esc(f.name)}: ~${eur(window.BUDGET.families[f.id])}</li>`).join('')}</ul>`;
   return `Eso mejor lo piensa Claude con calma 🤓. Pulsa <b>✨ Preguntar a Claude</b>: copio tu pregunta con todo el contexto del viaje y abro claude.ai.<br><span class="tiny">Yo controlo: plan de hoy/mañana, gastos, pagos, lluvia, cenas, excursiones, vuelos, documentos, villa, presupuesto y música.</span>`;
 }
@@ -975,7 +977,7 @@ function tripContext(q) {
 VIAJE: 13–25 ago 2027. ${fams().length} familias, ${groupLine()}. Ruta: Barcelona → Montreal (1 noche) → Punta Cana → Las Terrenas, villa 14–18 ago (chef en casa) → Hard Rock Punta Cana todo incluido 18–25 ago.
 ITINERARIO: ${window.DAYS.map(d => `${d.date} ${d.title}: ${d.items.map(i => i.title).join(', ')}`).join(' | ')}
 PRESUPUESTO: ${window.BUDGET.total} € (~${window.BUDGET.perPerson} €/pers). Gastado en destino: ${Math.round(tot)} €.
-VOTACIONES: ${window.POLLS.map(p => `${p.q} → ${p.options.map((o, i) => `${o}: ${Object.values(S.votes[p.id] || {}).filter(v => v === i).length}`).join(', ')}`).join(' | ')}
+VOTACIONES: ${window.POLLS.map(p => `${p.q} → ${p.options.map((o, i) => (p.hidden || []).includes(i) ? '' : `${o}: ${Object.values(S.votes[p.id] || {}).filter(v => v === i).length}`).filter(Boolean).join(', ')}`).join(' | ')}
 PLATOS FAVORITOS: ${S.dishes.map(d => `${d.name} (${d.for === 'kid' ? 'peques' : 'adultos'})`).join(', ') || '—'}
 CANCIONES: ${S.songs.map(s => `${s.title} – ${s.artist}`).join(', ') || '—'}
 
@@ -984,7 +986,11 @@ PREGUNTA: ${q}`;
 
 // ---------- Sheets ----------
 function realByLine() {
-  const r = {}; S.expenses.forEach(e => { const k = e.line || 'destino'; r[k] = (r[k] || 0) + toEur(e.amount, e.cur); }); return r;
+  const r = {}, byFam = {};
+  S.expenses.forEach(e => { const k = e.line || 'destino', a = toEur(e.amount, e.cur); r[k] = (r[k] || 0) + a; byFam[k + '|' + mem(e.payer).fam] = 1; });
+  // Pagos marcados en ✅ Pagos: suman su parte a la partida, salvo que esa familia ya haya apuntado gastos ahí (p. ej. vuelos-f1..f4).
+  window.MILESTONES.forEach(p => { if (p.line) fams().forEach(f => { if (S.paid[p.id]?.[f.id] && !byFam[p.line + '|' + f.id]) r[p.line] = (r[p.line] || 0) + (p.share[f.id] || 0); }); });
+  return r;
 }
 function expenseSheet(photo, line) {
   const L = window.BUDGET.lines.find(l => l.id === line);
