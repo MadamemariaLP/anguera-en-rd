@@ -320,7 +320,7 @@ function badgesOf(id) {
   const water = ['c1', 'c7'].filter(c => S.challenges[c] === id).length;
   return {
     b1: water >= 2, b2: S.photos.filter(p => p.by === id).length >= 10, b3: !!S.missionDone[id],
-    b4: bingoLines(S.bingo[id] || []) > 0, b5: m.fam && famPaid(m.fam), b6: window.POLLS.every(p => voteOf(p, id) != null),
+    b4: bingoLines(S.bingo[id] || []) > 0, b5: m.fam && famPaid(m.fam), b6: window.POLLS.every(p => p.closed || voteOf(p, id) != null),
   };
 }
 
@@ -445,11 +445,33 @@ function welcome() {
     <div class="welcome-scroll">${groups}</div></div></section>`;
 }
 
+// Próximo paso mientras no esté reservada la villa: votarla YA (el pago es en junio).
+function villaStep() {
+  const p = window.POLLS[0], v = pollVotes(p), hid = p.hidden || [];
+  const voters = Object.keys(v).length, total = members().length - Object.keys(dupOf()).length;
+  const mine = v[dupOf()[S.me] || S.me];
+  const counts = p.options.map((o, i) => hid.includes(i) ? -1 : Object.values(v).filter(x => x === i).length);
+  const max = Math.max(...counts), tops = counts.map((c, i) => c === max && c > 0 ? i : -1).filter(i => i >= 0);
+  const lead = !voters ? 'Aún no ha votado nadie: ¡estrena tú la urna!' : tops.length === 1 ? `Va ganando: <b>${esc(p.options[tops[0]].split(' ·')[0])}</b> (${max} ${max === 1 ? 'voto' : 'votos'})` : `Empate a ${max}: ${tops.map(i => `<b>${esc(p.options[i].split(' ·')[0])}</b>`).join(' vs ')}`;
+  return `<div class="sec-title"><h2>Próximo paso</h2></div>
+  <div class="card next villa-step">
+    <div class="label">🏡 Toca elegir la villa ya</div>
+    <h3>${mine != null ? `Has votado ${esc(p.options[mine].split(' ·')[0])} ✅` : '¿En qué villa de Las Terrenas nos quedamos?'}</h3>
+    <p class="vs-lead">${lead}</p>
+    <div class="bar"><i style="width:${total ? Math.round(voters / total * 100) : 0}%"></i></div>
+    <div class="tiny vs-count">${voters} de ${total} ya han votado${voters < total ? ' · las buenas villas vuelan en agosto' : ' · ¡todo el mundo ha votado! 🎉'}</div>
+    <button class="btn vs-cta" data-a="go" data-r="trip" data-sub="stays">${mine != null ? 'Ver villas y votos' : 'Ver las villas y votar'} →</button>
+    <div class="vs-joke">💸 <b>Tranquilidad:</b> no se paga nada hasta junio. Votar es gratis; la cartera puede seguir en la hamaca con un mojito hasta entonces 🍹😴</div>
+    <div class="big-emoji">🏡</div>
+  </div>`;
+}
+
 // ---------- HOME ----------
 function home() {
   const n = nextActivity();
   const pending = window.MILESTONES.find(p => fams().some(f => !S.paid[p.id]?.[f.id]));
-  const openPoll = window.POLLS.find(p => voteOf(p, S.me) == null);
+  const villaPending = !fams().every(f => S.paid.pay2?.[f.id]);
+  const openPoll = window.POLLS.find(p => !p.closed && voteOf(p, S.me) == null && !(villaPending && p.id === 'p1'));
   const word = window.LEXICON[Math.floor(Date.now() / 864e5) % window.LEXICON.length];
   const quick = [
     ['trip', '🗓️', 'Planes', '#A7F0E4'], ['explore', '🗺️', 'Mapa', '#7FDBFF'], ['wallet', '💸', 'Gastos', '#FFE7A8'], ['ai', '🥥', 'Coco AI', '#FFD1E1'],
@@ -482,7 +504,7 @@ function home() {
   <div class="sec-title"><h2>🎶 Banda sonora</h2><button data-a="go" data-r="tastes" data-sub="music">＋ Añadir</button></div>
   <div class="hscroll">${playlist().map((x, i) => `<button class="song-card" data-a="song" data-i="${i}" style="--h:${[350, 15, 200, 45, 120, 280, 170, 320][i % 8]}"><span class="disc">${x.id ? '💿' : '🔎'}</span><b>${esc(x.t)}</b><span class="tiny">${esc(x.a)}</span></button>`).join('')}</div>
 
-  ${pending ? `<div class="sec-title"><h2>Próximo paso</h2><button data-a="go" data-r="wallet">Ver pagos</button></div>
+  ${villaPending ? villaStep() : pending ? `<div class="sec-title"><h2>Próximo paso</h2><button data-a="go" data-r="wallet">Ver pagos</button></div>
   <div class="card"><div class="row"><div class="kind" style="background:#FFE7A8">${pending.emoji}</div>
     <div class="grow"><b>${esc(pending.title)}</b><div class="tiny">${esc(pending.amount)} · ${esc(pending.due)}</div></div></div>
     <div class="bar" style="margin-top:12px"><i style="width:${fams().filter(f => S.paid[pending.id]?.[f.id]).length * 25}%"></i></div>
@@ -584,6 +606,9 @@ function trip() {
 
 // ---------- POLLS ----------
 function pollCard(p) {
+  if (p.closed) return `<div class="card poll-closed"><div class="row"><b class="grow">${p.emoji} ${esc(p.q)}</b><span class="chip">✅ Decidido</span></div>
+    <div class="poll-opt mine" style="cursor:default"><i style="width:100%"></i><span>${esc(p.closed.title)}</span></div>
+    <div class="tiny" style="margin-top:6px">${esc(p.closed.note)}</div></div>`;
   const pi = window.POLLS.indexOf(p);
   const hid = p.hidden || [];
   const v = pollVotes(p);
@@ -986,7 +1011,7 @@ function tripContext(q) {
 VIAJE: 13–25 ago 2027. ${fams().length} familias, ${groupLine()}. Ruta: Barcelona → Montreal (1 noche) → Punta Cana → Las Terrenas, villa 14–18 ago (chef en casa) → Hard Rock Punta Cana todo incluido 18–25 ago.
 ITINERARIO: ${window.DAYS.map(d => `${d.date} ${d.title}: ${d.items.map(i => i.title).join(', ')}`).join(' | ')}
 PRESUPUESTO: ${window.BUDGET.total} € (~${window.BUDGET.perPerson} €/pers). Gastado en destino: ${Math.round(tot)} €.
-VOTACIONES: ${window.POLLS.map(p => `${p.q} → ${p.options.map((o, i) => (p.hidden || []).includes(i) ? '' : `${o}: ${Object.values(pollVotes(p)).filter(v => v === i).length}`).filter(Boolean).join(', ')}`).join(' | ')}
+VOTACIONES: ${window.POLLS.map(p => p.closed ? `${p.q} → DECIDIDO: ${p.closed.title}` : `${p.q} → ${p.options.map((o, i) => (p.hidden || []).includes(i) ? '' : `${o}: ${Object.values(pollVotes(p)).filter(v => v === i).length}`).filter(Boolean).join(', ')}`).join(' | ')}
 PLATOS FAVORITOS: ${S.dishes.map(d => `${d.name} (${d.for === 'kid' ? 'peques' : 'adultos'})`).join(', ') || '—'}
 CANCIONES: ${S.songs.map(s => `${s.title} – ${s.artist}`).join(', ') || '—'}
 

@@ -61,7 +61,7 @@ window.DAYS = [
   { date: '2027-08-14', zone: 'ltr', title: 'Montreal → Punta Cana → Las Terrenas', emoji: '🛫',
     items: [
       { id: 'a3', time: '09:20', title: 'Vuelo TS0398 YUL → PUJ', kind: 'flight', note: 'Air Transat · 4 h 25 min · llegada 13:45 a PUJ Terminal A' },
-      { id: 'a4', time: '14:45', title: 'Transfer privado a Las Terrenas', kind: 'transfer', note: '4 h de carretera · o coches de alquiler (votación)' },
+      { id: 'a4', time: '14:45', title: 'Transfer privado a Las Terrenas', kind: 'transfer', note: '4 h de carretera · transfer privado cerrado (1.500 $)' },
       { id: 'a5', time: '19:00', title: 'Llegada a la villa al atardecer', kind: 'chill', note: '🌅 Primer chapuzón obligatorio' },
     ] },
   { date: '2027-08-15', zone: 'ltr', title: 'Playa Cosón & piscina', emoji: '🏖️',
@@ -169,7 +169,7 @@ window.BUDGET = {
   lines: [
     { id: 'flights', cat: 'Vuelos', emoji: '✈️', eur: 11520, calc: '16 × 720 €' },
     { id: 'yul', cat: 'Hotel Montreal', emoji: '🍁', eur: 684, calc: '4 familias × 200 $' },
-    { id: 'transfer', cat: 'Transfer PUJ ⇄ LTR', emoji: '🚐', eur: 940, calc: 'Ida y vuelta, precio cerrado' },
+    { id: 'transfer', cat: 'Transfer PUJ ⇄ LTR', emoji: '🚐', eur: 940, calc: 'Transfer privado cerrado: 1.500 $ (presup. 1.100 $)' },
     { id: 'villa', cat: 'Villa (media)', emoji: '🏡', eur: 4550, calc: '(3.000 + 6.100) ÷ 2' },
     { id: 'super', cat: 'Súper para el chef', emoji: '🛒', eur: 427, calc: '~3 días' },
     { id: 'chef', cat: 'Chef', emoji: '👨‍🍳', eur: 256, calc: '0 si la villa lo incluye' },
@@ -184,7 +184,7 @@ window.BUDGET = {
 // line = partida del presupuesto: lo marcado como pagado suma al «Real» (salvo que esa familia ya haya apuntado gastos en esa partida).
 window.MILESTONES = [
   { id: 'pay1', line: 'flights', title: 'Comprar los vuelos', emoji: '✈️', amount: '12.480 €', detail: 'Pagado: 780 € por persona con seguro (previsto 720 €)', due: 'Cuanto antes', share: { f1: 2340, f2: 3900, f3: 3900, f4: 2340 } },
-  { id: 'pay2', line: 'villa', title: 'Reservar la villa (50 %)', emoji: '🏡', amount: '~2.275 €', detail: '50 % al reservar, resto más adelante · luz aparte', due: 'Tras la votación', share: { f1: 427, f2: 711, f3: 711, f4: 427 } },
+  { id: 'pay2', line: 'villa', title: 'Reservar la villa (50 %)', emoji: '🏡', amount: '~2.275 €', detail: 'Se elige ya, se paga en junio de 2027 · luz aparte', due: 'Pago en junio 2027', share: { f1: 427, f2: 711, f3: 711, f4: 427 } },
   { id: 'pay3', line: 'hardrock', title: 'Reservar el Hard Rock', emoji: '🎸', amount: '≈ 11.257 $', detail: 'Pago completo · cancelación gratis hasta el 18/07/2027 · a recalcular con los 2 adolescentes', due: 'Cancelación gratis hasta 18 jul 2027', share: { f1: 2308, f2: 2308, f3: 2308, f4: 2308 } },
 ];
 
@@ -227,7 +227,8 @@ window.PLACES = [
 
 window.POLLS = [
   { id: 'p1', q: '¿Qué villa reservamos en Las Terrenas?', emoji: '🏡', hidden: [0, 4], options: ['Casa del Río · 5.838 €', 'Tropical beachfront · 3.086 €', 'Casa Coco · 3.422 €', 'Villa Balboa · 4.517 €', 'Lujo Río Cosón · 2.608 €', 'Villa Angela · 4.568 €', 'Villas Paul · 2.683 €', 'Villa única frente a la playa · 5.398 €'] },
-  { id: 'p2', q: '¿Transfer privado o coches de alquiler?', emoji: '🚐', options: ['Transfer privado (1.100 $)', 'Alquilar 2–3 coches'] },
+  // closed: encuesta decidida (ya no se vota; se muestra el resultado). Los votos antiguos se conservan.
+  { id: 'p2', q: '¿Transfer privado o coches de alquiler?', emoji: '🚐', options: ['Transfer privado (1.100 $)', 'Alquilar 2–3 coches'], closed: { title: 'Transfer privado · cerrado por 1.500 $', note: 'Precio cerrado, ya está hecho: adiós a los coches de alquiler. Nadie tiene que conducir 4 h después de 10 h de avión 🙌' } },
   { id: 'p3', q: '¿Quads al Salto El Limón?', emoji: '🏍️', options: ['¡Sí, todos!', 'Solo adultos', 'Paso'] },
   { id: 'p4', q: 'Excursión estrella desde Punta Cana', emoji: '⭐', options: ['Isla Saona', 'Catamarán party', 'Hoyo Azul', 'Nada, resort a muerte'] },
 ];
