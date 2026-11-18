@@ -138,7 +138,7 @@ window.FLIGHTS = [
 
 window.STAYS = [
   { id: 's1', zone: 'yul', name: 'Hotel aeropuerto YUL', dates: '13 → 14 ago · 1 noche (vuelo a las 09:20)', price: '~200 $ por familia', status: 'pendiente', img: 'p16', imgCap: 'Poutine, la cena típica de Montreal' },
-  { id: 's2', zone: 'ltr', name: 'Villa en Las Terrenas', dates: '14 → 18 ago · 4 noches', price: '2.683–5.398 € en Airbnb (+ luz según villa) · 6 candidatas', status: 'votación', poll: 'p1', img: 'villa', imgCap: 'Playa Cosón, la playa de las villas' },
+  { id: 's2', zone: 'ltr', name: 'Villa en Las Terrenas', dates: '14 → 18 ago · 4 noches', price: '2.683–5.398 € en Airbnb (+ luz según villa) · 5 candidatas', status: 'votación', poll: 'p1', img: 'villa', imgCap: 'Playa Cosón, la playa de las villas' },
   { id: 's3', zone: 'puj', name: 'Hard Rock Punta Cana', dates: '18 → 25 ago · 7 noches', price: '≈ 11.257 $ según el PDF · a recalcular (2 adolescentes)', status: 'pendiente', img: 'hardrock', imgCap: 'Hard Rock Hotel & Casino Punta Cana',
     rooms: [
       { fam: 'f1', label: '2A + 1 niño', price: 2700 },
@@ -155,7 +155,7 @@ window.VILLAS = [
   { id: 'v3', url: 'https://www.airbnb.es/rooms/1886712?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Casa Coco · a 50 m de Cosón', meta: '7 dorm · 11 camas · 6,5 baños', rating: 4.87, price: 3422, tags: ['Chef opcional'], pros: ['A 50 m de Playa Cosón', 'Chef opcional', 'Muy buena nota (4,87)', 'Precio medio-bajo'], cons: ['No está en primera línea', '11 camas para 16: algunos peques comparten'], town: 5.3, area: 'Playa Cosón (oeste)' },
   { id: 'v4', url: 'https://www.airbnb.es/rooms/1138147595655505633?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa Balboa · Cap Bonita', meta: '6 dorm · 9 camas · 6,5 baños', rating: 4.91, price: 4517, tags: ['Acceso playa VIP', '+45 $/noche luz'], pros: ['Acceso VIP a la playa (Cap Bonita)', 'Nota altísima: 4,91', '6,5 baños'], cons: ['Luz aparte: +45 $/noche', 'Solo 9 camas', 'De las caras'], town: 4.8, area: 'Cap Bonita, entre Bonita y Cosón (oeste)' },
   { id: 'v5', removed: true, url: 'https://www.airbnb.es/rooms/1592054430164573904?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa de lujo · Río Cosón', meta: '6 dorm · 18 camas · 6,5 baños', rating: 4.75, price: 2608, tags: ['Chef incluido', 'Oferta: antes 3.029 €', '+300 € luz'] },
-  { id: 'v6', url: 'https://www.airbnb.es/rooms/1790162866194806261?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa Angela · El Portillo', meta: '5 dorm · 9 camas · 5 baños · hasta 16', rating: null, price: 4568, tags: ['Frente a la playa', 'Nueva: sin reseñas'], pros: ['Frente a la playa', 'Admite hasta 16 personas', 'Recién estrenada'], cons: ['El anuncio ya no está en Airbnb (comprobado el 18/11)', 'Sin reseñas todavía (nos la jugamos)', '5 dormitorios y 5 baños para 4 familias', 'De las caras'], town: 3.5, townApprox: true, area: 'El Portillo (este)', gone: '18/11/2026' },
+  { id: 'v6', removed: true, url: 'https://www.airbnb.es/rooms/1790162866194806261?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa Angela · El Portillo', meta: '5 dorm · 9 camas · 5 baños · hasta 16', rating: null, price: 4568, tags: ['Frente a la playa', 'Nueva: sin reseñas'], pros: ['Frente a la playa', 'Admite hasta 16 personas', 'Recién estrenada'], cons: ['El anuncio ya no está en Airbnb (comprobado el 18/11)', 'Sin reseñas todavía (nos la jugamos)', '5 dormitorios y 5 baños para 4 familias', 'De las caras'], town: 3.5, townApprox: true, area: 'El Portillo (este)', gone: '18/11/2026' },
   { id: 'v7', url: 'https://www.airbnb.es/rooms/1605852786416374364?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villas Paul · Portillo', meta: '6 dorm · 6 camas · 5,5 baños', rating: 5.0, price: 2683, tags: ['Mayordomo y cocineros', 'Comunidad privada', 'Ojo: solo 6 camas'], pros: ['La más barata', 'Muy cerca del pueblo: ~2,8 km', 'Nota perfecta: 5,0', 'Mayordomo y cocineros', 'Comunidad privada'], cons: ['Solo 6 camas para 16: preguntar por supletorias'], town: 2.8, area: 'El Portillo (este)' },
   { id: 'v8', url: 'https://www.airbnb.es/rooms/7179978?adults=8&children=8&check_in=2027-08-14&check_out=2027-08-18', name: 'Villa única frente a la playa', meta: '8 dorm · 9 camas · 7 baños · 14–17 plazas', rating: 4.79, price: 5398, tags: ['Frente a la playa'], pros: ['La más cerca del pueblo: ~2,6 km', 'Frente a la playa', '8 dormitorios: cada familia con su espacio', '7 baños'], cons: ['La más cara', 'Solo 9 camas', 'Nota algo más baja (4,79)'], town: 2.6, area: 'Playa Bonita (oeste)' },
 ];
@@ -164,7 +164,7 @@ window.VILLAS = [
 // pros/cons: sacados solo de los datos del anuncio guardados aquí (camas, baños, nota, precio, etiquetas); los usa Coco para comparar.
 // url: anuncio de Airbnb (María, 30/10). price = total de Airbnb para 14–18 ago 2027 y 16 huéspedes, consultado el 30/10/2026.
 // Las opciones de la encuesta p1 van en el mismo orden (los votos se guardan por índice: añadir siempre al final).
-// Para quitar una villa: removed: true en VILLAS + su índice en POLLS p1.hidden (nunca borrarla, descoloca los votos). Quitadas las del río (v1, v5) el 12/11/2026.
+// Para quitar una villa: removed: true en VILLAS + su índice en POLLS p1.hidden (nunca borrarla, descoloca los votos). Quitadas las del río (v1, v5) el 12/11/2026 y Villa Angela (v6, anuncio borrado de Airbnb) el 18/11/2026.
 // Presupuesto del grupo (PDF pág. 5). EUR.
 window.BUDGET = {
   total: 28340, perPerson: 1770,
@@ -228,7 +228,7 @@ window.PLACES = [
 ];
 
 window.POLLS = [
-  { id: 'p1', q: '¿Qué villa reservamos en Las Terrenas?', emoji: '🏡', adultsOnly: true, hidden: [0, 4], options: ['Casa del Río · 5.838 €', 'Tropical beachfront · 3.086 €', 'Casa Coco · 3.422 €', 'Villa Balboa · 4.517 €', 'Lujo Río Cosón · 2.608 €', 'Villa Angela · 4.568 €', 'Villas Paul · 2.683 €', 'Villa única frente a la playa · 5.398 €'] },
+  { id: 'p1', q: '¿Qué villa reservamos en Las Terrenas?', emoji: '🏡', adultsOnly: true, hidden: [0, 4, 5], options: ['Casa del Río · 5.838 €', 'Tropical beachfront · 3.086 €', 'Casa Coco · 3.422 €', 'Villa Balboa · 4.517 €', 'Lujo Río Cosón · 2.608 €', 'Villa Angela · 4.568 €', 'Villas Paul · 2.683 €', 'Villa única frente a la playa · 5.398 €'] },
   // adultsOnly: solo votan los adultos (María, 18/11: la villa la eligen los mayores).
   // closed: encuesta decidida (ya no se vota; se muestra el resultado). Los votos antiguos se conservan.
   { id: 'p2', q: '¿Transfer privado o coches de alquiler?', emoji: '🚐', options: ['Transfer privado (1.100 $)', 'Alquilar 2–3 coches'], closed: { title: 'Transfer privado · cerrado por 1.500 $', note: 'Precio cerrado, ya está hecho: adiós a los coches de alquiler. Nadie tiene que conducir 4 h después de 10 h de avión 🙌' } },

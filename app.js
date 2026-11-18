@@ -977,7 +977,7 @@ function villaCompare() {
     <li>🏖️ Con la playa delante: ${beach.map(short).join(', ')}</li></ul></div>
   ${L.map(x => `<div class="mini"><b>${short(x)}</b> · 📍 ${km(x)} km · ${eur(x.price)} · ${x.votes} ${x.votes === 1 ? 'voto' : 'votos'}
     <ul class="vc-list">${(x.pros || []).map(t => `<li>✅ ${esc(t)}</li>`).join('')}${(x.cons || []).map(t => `<li>⚠️ ${esc(t)}</li>`).join('')}</ul></div>`).join('')}
-  <div style="margin-top:8px">Mi resumen 🥥: <b>cerca del pueblo</b> → Villa única (2,6 km) o Villas Paul (2,8 km, y la más barata si confirman camas) · <b>playa y precio</b> → Tropical beachfront, aunque queda lejos (8 km) · <b>ir sobre seguro</b> → Casa Coco o Balboa (notazas, en la zona tranquila de Cosón) · <b>Villa Angela</b>: su anuncio ya no está en Airbnb.</div>
+  <div style="margin-top:8px">Mi resumen 🥥: <b>cerca del pueblo</b> → Villa única (2,6 km) o Villas Paul (2,8 km, y la más barata si confirman camas) · <b>playa y precio</b> → Tropical beachfront, aunque queda lejos (8 km) · <b>ir sobre seguro</b> → Casa Coco o Balboa (notazas, en la zona tranquila de Cosón)</div>
   <button class="btn sm sea" style="margin-top:10px" data-a="go" data-r="trip" data-sub="stays">Ir a votar la villa →</button>`;
 }
 function answer(raw) {
