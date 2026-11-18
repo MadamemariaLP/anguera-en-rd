@@ -499,3 +499,11 @@ textarea.input { height: 90px; padding: 12px 14px; resize: none; }
 .poll-closed .poll-opt span { position: relative; }
 .kid-note { margin-top: 8px; padding: 8px 10px; border-radius: 11px; background: var(--bg-2); }
 .poll-opt:disabled { cursor: default; opacity: 1; color: inherit; }
+.vc-table { overflow-x: auto; }
+.vc-table table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.vc-table th { text-align: left; font-weight: 800; opacity: .7; padding: 0 4px 4px; }
+.vc-table td { padding: 4px; border-top: 1px solid rgba(127, 127, 127, .18); white-space: nowrap; }
+.vc-table td:first-child { white-space: normal; font-weight: 700; }
+.msg.bot .mini ul { margin: 6px 0 0; padding-left: 18px; }
+.msg.bot .vc-list { list-style: none; padding-left: 0; }
+.villa-step .vs-coco { position: relative; z-index: 1; margin: 10px 0 0 8px; background: rgba(255, 255, 255, .16); color: #fff; }

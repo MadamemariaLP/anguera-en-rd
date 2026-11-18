@@ -464,6 +464,7 @@ function villaStep() {
     <div class="bar"><i style="width:${total ? Math.round(voters / total * 100) : 0}%"></i></div>
     <div class="tiny vs-count">${voters} de ${total} adultos ya han votado${voters < total ? ' · las buenas villas vuelan en agosto' : ' · ¡todo el mundo ha votado! 🎉'}</div>
     <button class="btn vs-cta" data-a="go" data-r="trip" data-sub="stays">${kid ? 'Ver las villas' : mine != null ? 'Ver villas y votos' : 'Ver las villas y votar'} →</button>
+    <button class="btn sm vs-coco" data-a="ask-villas">🥥 Coco, compárame las villas</button>
     <div class="vs-joke">💸 <b>Tranquilidad:</b> no se paga nada hasta junio. Votar es gratis; la cartera puede seguir en la hamaca con un mojito hasta entonces 🍹😴</div>
     <div class="big-emoji">🏡</div>
   </div>`;
@@ -578,7 +579,7 @@ function trip() {
       <div class="tags">${v.tags.map(x => `<span class="${x === 'Favorita' ? 'hot' : ''}">${esc(x)}</span>`).join('')}</div>
       <div style="margin-top:6px;font:800 18px var(--font-display)">${v.price ? `${eur(v.price)} <span class="tiny">total Airbnb · 4 noches · ${eur(Math.round(v.price / members().length))}/pers.</span>` : '<span class="tiny" style="font:700 13px var(--font)">Precio por confirmar · míralo en Airbnb</span>'}</div>
       ${v.url ? `<a class="btn sm airbnb" href="${esc(v.url)}" target="_blank" rel="noopener">Ver en Airbnb ↗</a>` : ''}</div></div>`).join('')}
-    <div class="sec-title"><h2>Vota la villa</h2></div>${pollCard(p1)}
+    <div class="sec-title"><h2>Vota la villa</h2><button data-a="ask-villas">🥥 Comparar</button></div>${pollCard(p1)}
     <p class="tiny" style="margin-top:8px">Ojo: la luz se paga aparte en todas las villas.</p></div>`;
   }
 
@@ -926,7 +927,7 @@ async function playFilm() {
 }
 
 // ---------- AI CONCIERGE (Coco) ----------
-const SUGGEST = ['Cuéntame una curiosidad de RD', '¿Qué hacemos mañana?', '¿Dónde cenamos todos?', '¿Cuánto hemos gastado?', '¿Quién no ha pagado?', '¿Qué hacemos si llueve?', '¿Qué excursión recomiendas?', '¿Qué documentos faltan?', 'Pon música'];
+const SUGGEST = ['🏡 Compara las villas', 'Cuéntame una curiosidad de RD', '¿Qué hacemos mañana?', '¿Dónde cenamos todos?', '¿Cuánto hemos gastado?', '¿Quién no ha pagado?', '¿Qué hacemos si llueve?', '¿Qué excursión recomiendas?', '¿Qué documentos faltan?', 'Pon música'];
 function ai() {
   const chat = S.chat.length ? S.chat : [{ role: 'bot', html: `¡Hola ${esc(me().name)}! Soy <b>Coco</b> 🥥, el concierge del club. Conozco el itinerario, los gastos, las votaciones y los gustos del grupo. Pregúntame lo que quieras.` }];
   return `<div class="page-head" style="text-align:center"><div class="coco">🥥</div><h1 style="font-size:28px">Coco · AI Concierge</h1><p>Sabe todo del viaje. Para preguntas abiertas, te paso a Claude con el contexto.</p></div>
@@ -947,6 +948,32 @@ function ask(q) {
   const c = $('#chat'); c.insertAdjacentHTML('beforeend', '<div class="msg bot typing"><span></span><span></span><span></span></div>');
   c.lastElementChild.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   setTimeout(() => { S.chat.push({ role: 'bot', html: answer(q) }); S.chat = S.chat.slice(-40); save(); scrollToAnswer = true; render(); }, 650);
+}
+// Comparativa de villas para Coco: tabla + lo mejor de cada una + pros/contras + votos (solo adultos).
+function villaCompare() {
+  const p = window.POLLS[0], v = pollVotes(p), n = members().length;
+  const L = window.VILLAS.map((x, i) => ({ ...x, i, beds: +(x.meta.match(/(\d+) camas/) || [])[1] || 0, rooms: +(x.meta.match(/(\d+) dorm/) || [])[1] || 0,
+    baths: parseFloat(((x.meta.match(/([\d,]+) baños/) || [])[1] || '0').replace(',', '.')), votes: Object.values(v).filter(k => k === x.i).length }))
+    .filter(x => !x.removed && !(p.hidden || []).includes(x.i));
+  const stars = r => (Number.isInteger(r) ? r.toFixed(1) : String(r)).replace('.', ',');
+  const short = x => esc(x.name.split(' ·')[0]);
+  const best = (f, dir = 1) => { const c = L.filter(x => f(x) != null).sort((a, b) => dir * (f(b) - f(a))); return c.filter(x => f(x) === f(c[0])); };
+  const names = xs => xs.map(short).join(' y ');
+  const cheap = best(x => x.price, -1), rated = best(x => x.rating), beds = best(x => x.beds), rooms = best(x => x.rooms);
+  const beach = L.filter(x => x.tags.some(t => /frente a la playa|primera l/i.test(t)));
+  return `🏡 <b>Las ${L.length} villas, cara a cara</b> <span class="tiny">(datos de Airbnb del 30/10 · 14–18 ago · luz aparte en todas)</span>
+  <div class="mini vc-table"><table><tr><th>Villa</th><th>€/pers</th><th>Camas</th><th>Baños</th><th>★</th></tr>
+  ${L.map(x => `<tr><td>${short(x)}</td><td>${num(Math.round(x.price / n))}</td><td>${x.beds}</td><td>${String(x.baths).replace('.', ',')}</td><td>${x.rating ? stars(x.rating) : '—'}</td></tr>`).join('')}</table></div>
+  <div class="mini"><b>🏆 Lo mejor de cada una</b><ul>
+    <li>💸 Más barata: <b>${names(cheap)}</b> (${eur(cheap[0].price)})</li>
+    <li>⭐ Mejor nota: <b>${names(rated)}</b> (${stars(rated[0].rating)})</li>
+    <li>🛏️ Más camas: <b>${names(beds)}</b> (${beds[0].beds})</li>
+    <li>🚪 Más dormitorios: <b>${names(rooms)}</b> (${rooms[0].rooms})</li>
+    <li>🏖️ Con la playa delante: ${beach.map(short).join(', ')}</li></ul></div>
+  ${L.map(x => `<div class="mini"><b>${short(x)}</b> · ${eur(x.price)} · ${x.votes} ${x.votes === 1 ? 'voto' : 'votos'}
+    <ul class="vc-list">${(x.pros || []).map(t => `<li>✅ ${esc(t)}</li>`).join('')}${(x.cons || []).map(t => `<li>⚠️ ${esc(t)}</li>`).join('')}</ul></div>`).join('')}
+  <div style="margin-top:8px">Mi resumen 🥥: <b>playa y precio</b> → Tropical beachfront · <b>ahorrar al máximo</b> → Villas Paul (si confirman camas) · <b>ir sobre seguro</b> → Casa Coco o Balboa (notazas) · <b>capricho frente al mar</b> → Villa única.</div>
+  <button class="btn sm sea" style="margin-top:10px" data-a="go" data-r="trip" data-sub="stays">Ir a votar la villa →</button>`;
 }
 function answer(raw) {
   const q = raw.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -1005,7 +1032,7 @@ function answer(raw) {
     const pick = [...set].sort(() => Math.random() - .5).slice(0, 3);
     return `📜 Ahí van 3 curiosidades:<ul>${pick.map(h => `<li>${h[0]} <b>${esc(h[1])}:</b> ${esc(h[2])}</li>`).join('')}</ul>Más en Explora → Historia y curiosidades.`;
   }
-  if (has('villa', 'casa')) return `🏡 Quedan ${window.VILLAS.filter(v => !v.removed).length} villas candidatas en Las Terrenas. Votación actual: ${window.POLLS[0].options.map((o, i) => (window.POLLS[0].hidden || []).includes(i) ? '' : `${esc(o.split(' ·')[0])}: ${Object.values(pollVotes(window.POLLS[0])).filter(v => v === i).length}`).filter(Boolean).join(' · ')}.`;
+  if (has('villa', 'casa', 'compara')) return villaCompare();
   if (has('presupuesto', 'familia', 'cuanto cuesta', 'precio')) return `Presupuesto: <b>${eur(window.BUDGET.total)}</b> el grupo.<ul>${fams().map(f => `<li>${f.emoji} ${esc(f.name)}: ~${eur(window.BUDGET.families[f.id])}</li>`).join('')}</ul>`;
   return `Eso mejor lo piensa Claude con calma 🤓. Pulsa <b>✨ Preguntar a Claude</b>: copio tu pregunta con todo el contexto del viaje y abro claude.ai.<br><span class="tiny">Yo controlo: plan de hoy/mañana, gastos, pagos, lluvia, cenas, excursiones, vuelos, documentos, villa, presupuesto y música.</span>`;
 }
@@ -1015,6 +1042,7 @@ function tripContext(q) {
 VIAJE: 13–25 ago 2027. ${fams().length} familias, ${groupLine()}. Ruta: Barcelona → Montreal (1 noche) → Punta Cana → Las Terrenas, villa 14–18 ago (chef en casa) → Hard Rock Punta Cana todo incluido 18–25 ago.
 ITINERARIO: ${window.DAYS.map(d => `${d.date} ${d.title}: ${d.items.map(i => i.title).join(', ')}`).join(' | ')}
 PRESUPUESTO: ${window.BUDGET.total} € (~${window.BUDGET.perPerson} €/pers). Gastado en destino: ${Math.round(tot)} €.
+VILLAS (solo votan adultos): ${window.VILLAS.filter(x => !x.removed).map(x => `${x.name}: ${x.price} €, ${x.meta}, nota ${x.rating || 'sin reseñas'}; pros: ${(x.pros || []).join(', ')}; contras: ${(x.cons || []).join(', ')}`).join(' | ')}
 VOTACIONES: ${window.POLLS.map(p => p.closed ? `${p.q} → DECIDIDO: ${p.closed.title}` : `${p.q} → ${p.options.map((o, i) => (p.hidden || []).includes(i) ? '' : `${o}: ${Object.values(pollVotes(p)).filter(v => v === i).length}`).filter(Boolean).join(', ')}`).join(' | ')}
 PLATOS FAVORITOS: ${S.dishes.map(d => `${d.name} (${d.for === 'kid' ? 'peques' : 'adultos'})`).join(', ') || '—'}
 CANCIONES: ${S.songs.map(s => `${s.title} – ${s.artist}`).join(', ') || '—'}
@@ -1314,6 +1342,7 @@ const A = {
   tag: d => { const p = S.photos.find(x => x.id === d.id); const i = p.tags.indexOf(d.m); i >= 0 ? p.tags.splice(i, 1) : p.tags.push(d.m); save(); photoSheet(d.id); },
   'del-photo': d => { if (!confirm('¿Quitar la foto?')) return; idb.del(d.id); Sync.removePhoto(d.id); S.photos = S.photos.filter(p => p.id !== d.id); save(); closeSheet(); render(); },
   ask: d => ask(SUGGEST[+d.i]),
+  'ask-villas': () => { if (route !== 'ai') { window.addEventListener('hashchange', () => ask(SUGGEST[0]), { once: true }); go('ai'); } else ask(SUGGEST[0]); },
   claude: () => { const last = [...S.chat].reverse().find(m => m.role === 'me'); copy(tripContext(last ? last.text : '¿Qué nos recomiendas para este viaje?'), 'Contexto copiado: pégalo en Claude ✨'); window.open('https://claude.ai/new', '_blank', 'noopener'); },
   'clear-chat': () => { S.chat = []; save(); render(); },
   music: () => { if (Music.playing) { Music.stop(); S.music = false; toast('🔇 Música silenciada'); } else { S.music = true; Music.play(Math.max(0, Music.cur)); } save(); closeSheet(true); },
