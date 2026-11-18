@@ -233,6 +233,7 @@ window.POLLS = [
   { id: 'p2', q: '¿Transfer privado o coches de alquiler?', emoji: '🚐', options: ['Transfer privado (1.100 $)', 'Alquilar 2–3 coches'], closed: { title: 'Transfer privado · cerrado por 1.500 $', note: 'Precio cerrado, ya está hecho: adiós a los coches de alquiler. Nadie tiene que conducir 4 h después de 10 h de avión 🙌' } },
   { id: 'p3', q: '¿Quads al Salto El Limón?', emoji: '🏍️', options: ['¡Sí, todos!', 'Solo adultos', 'Paso'] },
   { id: 'p4', q: 'Excursión estrella desde Punta Cana', emoji: '⭐', options: ['Isla Saona', 'Catamarán party', 'Hoyo Azul', 'Nada, resort a muerte'] },
+  { id: 'p5', q: 'Noche de adultos: ¿contratamos niñera?', emoji: '🍸', adultsOnly: true, options: ['¡Sí! Niñera y a bailar bachata 💃', 'No, los peques vienen con nosotros'] },
 ];
 
 // Gamificación
