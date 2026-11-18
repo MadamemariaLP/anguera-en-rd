@@ -956,23 +956,28 @@ function villaCompare() {
     baths: parseFloat(((x.meta.match(/([\d,]+) baños/) || [])[1] || '0').replace(',', '.')), votes: Object.values(v).filter(k => k === x.i).length }))
     .filter(x => !x.removed && !(p.hidden || []).includes(x.i));
   const stars = r => (Number.isInteger(r) ? r.toFixed(1) : String(r)).replace('.', ',');
+  const km = x => (x.townApprox ? '~' : '') + String(x.town).replace('.', ',');
   const short = x => esc(x.name.split(' ·')[0]);
   const best = (f, dir = 1) => { const c = L.filter(x => f(x) != null).sort((a, b) => dir * (f(b) - f(a))); return c.filter(x => f(x) === f(c[0])); };
   const names = xs => xs.map(short).join(' y ');
   const cheap = best(x => x.price, -1), rated = best(x => x.rating), beds = best(x => x.beds), rooms = best(x => x.rooms);
   const beach = L.filter(x => x.tags.some(t => /frente a la playa|primera l/i.test(t)));
   return `🏡 <b>Las ${L.length} villas, cara a cara</b> <span class="tiny">(datos de Airbnb del 30/10 · 14–18 ago · luz aparte en todas)</span>
-  <div class="mini vc-table"><table><tr><th>Villa</th><th>€/pers</th><th>Camas</th><th>Baños</th><th>★</th></tr>
-  ${L.map(x => `<tr><td>${short(x)}</td><td>${num(Math.round(x.price / n))}</td><td>${x.beds}</td><td>${String(x.baths).replace('.', ',')}</td><td>${x.rating ? stars(x.rating) : '—'}</td></tr>`).join('')}</table></div>
+  <div class="mini"><b>📍 Ubicación: lo mejor es estar cerca del pueblo</b> <span class="tiny">(Pueblo de los Pescadores: restaurantes, súper y la noche)</span>
+  <ol class="vc-rank">${L.slice().sort((a, b) => a.town - b.town).map(x => `<li><b>${short(x)}</b> · ${km(x)} km · ${esc(x.area)}</li>`).join('')}</ol>
+  <div class="tiny">Km en línea recta, con la ubicación aproximada que da Airbnb; por carretera es algo más.</div></div>
+  <div class="mini vc-table"><table><tr><th>Villa</th><th>Km</th><th>€/pers</th><th>Camas</th><th>Baños</th><th>★</th></tr>
+  ${L.slice().sort((a, b) => a.town - b.town).map(x => `<tr><td>${short(x)}${x.gone ? ' ⚠️' : ''}</td><td>${km(x)}</td><td>${num(Math.round(x.price / n))}</td><td>${x.beds}</td><td>${String(x.baths).replace('.', ',')}</td><td>${x.rating ? stars(x.rating) : '—'}</td></tr>`).join('')}</table></div>
   <div class="mini"><b>🏆 Lo mejor de cada una</b><ul>
+    <li>📍 Más cerca del pueblo: <b>${names(best(x => x.town, -1))}</b> (${km(best(x => x.town, -1)[0])} km)</li>
     <li>💸 Más barata: <b>${names(cheap)}</b> (${eur(cheap[0].price)})</li>
     <li>⭐ Mejor nota: <b>${names(rated)}</b> (${stars(rated[0].rating)})</li>
     <li>🛏️ Más camas: <b>${names(beds)}</b> (${beds[0].beds})</li>
     <li>🚪 Más dormitorios: <b>${names(rooms)}</b> (${rooms[0].rooms})</li>
     <li>🏖️ Con la playa delante: ${beach.map(short).join(', ')}</li></ul></div>
-  ${L.map(x => `<div class="mini"><b>${short(x)}</b> · ${eur(x.price)} · ${x.votes} ${x.votes === 1 ? 'voto' : 'votos'}
+  ${L.map(x => `<div class="mini"><b>${short(x)}</b> · 📍 ${km(x)} km · ${eur(x.price)} · ${x.votes} ${x.votes === 1 ? 'voto' : 'votos'}
     <ul class="vc-list">${(x.pros || []).map(t => `<li>✅ ${esc(t)}</li>`).join('')}${(x.cons || []).map(t => `<li>⚠️ ${esc(t)}</li>`).join('')}</ul></div>`).join('')}
-  <div style="margin-top:8px">Mi resumen 🥥: <b>playa y precio</b> → Tropical beachfront · <b>ahorrar al máximo</b> → Villas Paul (si confirman camas) · <b>ir sobre seguro</b> → Casa Coco o Balboa (notazas) · <b>capricho frente al mar</b> → Villa única.</div>
+  <div style="margin-top:8px">Mi resumen 🥥: <b>cerca del pueblo</b> → Villa única (2,6 km) o Villas Paul (2,8 km, y la más barata si confirman camas) · <b>playa y precio</b> → Tropical beachfront, aunque queda lejos (8 km) · <b>ir sobre seguro</b> → Casa Coco o Balboa (notazas, en la zona tranquila de Cosón) · <b>Villa Angela</b>: su anuncio ya no está en Airbnb.</div>
   <button class="btn sm sea" style="margin-top:10px" data-a="go" data-r="trip" data-sub="stays">Ir a votar la villa →</button>`;
 }
 function answer(raw) {
@@ -1042,7 +1047,7 @@ function tripContext(q) {
 VIAJE: 13–25 ago 2027. ${fams().length} familias, ${groupLine()}. Ruta: Barcelona → Montreal (1 noche) → Punta Cana → Las Terrenas, villa 14–18 ago (chef en casa) → Hard Rock Punta Cana todo incluido 18–25 ago.
 ITINERARIO: ${window.DAYS.map(d => `${d.date} ${d.title}: ${d.items.map(i => i.title).join(', ')}`).join(' | ')}
 PRESUPUESTO: ${window.BUDGET.total} € (~${window.BUDGET.perPerson} €/pers). Gastado en destino: ${Math.round(tot)} €.
-VILLAS (solo votan adultos): ${window.VILLAS.filter(x => !x.removed).map(x => `${x.name}: ${x.price} €, ${x.meta}, nota ${x.rating || 'sin reseñas'}; pros: ${(x.pros || []).join(', ')}; contras: ${(x.cons || []).join(', ')}`).join(' | ')}
+VILLAS (solo votan adultos; lo mejor = cerca del Pueblo de los Pescadores): ${window.VILLAS.filter(x => !x.removed).map(x => `${x.name}: ${x.town} km del pueblo (${x.area})${x.gone ? ', ANUNCIO YA NO DISPONIBLE' : ''}, ${x.price} €, ${x.meta}, nota ${x.rating || 'sin reseñas'}; pros: ${(x.pros || []).join(', ')}; contras: ${(x.cons || []).join(', ')}`).join(' | ')}
 VOTACIONES: ${window.POLLS.map(p => p.closed ? `${p.q} → DECIDIDO: ${p.closed.title}` : `${p.q} → ${p.options.map((o, i) => (p.hidden || []).includes(i) ? '' : `${o}: ${Object.values(pollVotes(p)).filter(v => v === i).length}`).filter(Boolean).join(', ')}`).join(' | ')}
 PLATOS FAVORITOS: ${S.dishes.map(d => `${d.name} (${d.for === 'kid' ? 'peques' : 'adultos'})`).join(', ') || '—'}
 CANCIONES: ${S.songs.map(s => `${s.title} – ${s.artist}`).join(', ') || '—'}
