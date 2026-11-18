@@ -226,7 +226,8 @@ window.PLACES = [
 ];
 
 window.POLLS = [
-  { id: 'p1', q: '¿Qué villa reservamos en Las Terrenas?', emoji: '🏡', hidden: [0, 4], options: ['Casa del Río · 5.838 €', 'Tropical beachfront · 3.086 €', 'Casa Coco · 3.422 €', 'Villa Balboa · 4.517 €', 'Lujo Río Cosón · 2.608 €', 'Villa Angela · 4.568 €', 'Villas Paul · 2.683 €', 'Villa única frente a la playa · 5.398 €'] },
+  { id: 'p1', q: '¿Qué villa reservamos en Las Terrenas?', emoji: '🏡', adultsOnly: true, hidden: [0, 4], options: ['Casa del Río · 5.838 €', 'Tropical beachfront · 3.086 €', 'Casa Coco · 3.422 €', 'Villa Balboa · 4.517 €', 'Lujo Río Cosón · 2.608 €', 'Villa Angela · 4.568 €', 'Villas Paul · 2.683 €', 'Villa única frente a la playa · 5.398 €'] },
+  // adultsOnly: solo votan los adultos (María, 18/11: la villa la eligen los mayores).
   // closed: encuesta decidida (ya no se vota; se muestra el resultado). Los votos antiguos se conservan.
   { id: 'p2', q: '¿Transfer privado o coches de alquiler?', emoji: '🚐', options: ['Transfer privado (1.100 $)', 'Alquilar 2–3 coches'], closed: { title: 'Transfer privado · cerrado por 1.500 $', note: 'Precio cerrado, ya está hecho: adiós a los coches de alquiler. Nadie tiene que conducir 4 h después de 10 h de avión 🙌' } },
   { id: 'p3', q: '¿Quads al Salto El Limón?', emoji: '🏍️', options: ['¡Sí, todos!', 'Solo adultos', 'Paso'] },

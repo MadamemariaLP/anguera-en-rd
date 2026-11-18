@@ -497,3 +497,5 @@ textarea.input { height: 90px; padding: 12px 14px; resize: none; }
 .villa-step .vs-joke { position: relative; z-index: 1; margin-top: 14px; padding: 10px 12px; border-radius: 13px; background: rgba(255, 255, 255, .14); font-size: 13.5px; line-height: 1.4; }
 .villa-step .big-emoji { bottom: auto; top: 18px; font-size: 64px; opacity: .85; }
 .poll-closed .poll-opt span { position: relative; }
+.kid-note { margin-top: 8px; padding: 8px 10px; border-radius: 11px; background: var(--bg-2); }
+.poll-opt:disabled { cursor: default; opacity: 1; color: inherit; }

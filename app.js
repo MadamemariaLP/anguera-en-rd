@@ -235,6 +235,9 @@ function safeRender() {
 const members = () => [...window.MEMBERS, ...S.extra].filter(m => !S.removed.includes(m.id)).map(m => ({ ...m, name: S.names[m.id] || m.name, avatar: S.avatars[m.id] || m.avatar }));
 const groupLine = () => { const ms = members(); const a = ms.filter(m => m.kind === 'adult').length, t = ms.filter(m => m.kind === 'teen').length, k = ms.filter(m => m.kind === 'kid').length;
   return `${ms.length} viajeros (${a} adultos${t ? `, ${t} teen` : ''}${k ? `, ${k} peques` : ''})`; };
+// adultsOnly: los peques no votan (ni cuentan en el total). Sus votos antiguos se ignoran.
+const canVote = (p, id) => !p.closed && (!p.adultsOnly || mem(id).kind !== 'kid');
+const pollElectorate = p => members().filter(m => canVote({ ...p, closed: false }, m.id) && !dupOf()[m.id]).length;
 const voteOf = (p, id) => pollVotes(p)[dupOf()[id] || id] ?? null;
 // Persona repetida = mismo nombre (sin tildes/mayúsculas) en la misma familia. Cuenta el primer perfil (el original antes que los añadidos).
 const normName = n => (n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
@@ -242,7 +245,7 @@ const dupOf = () => { const seen = {}, d = {}; members().forEach(m => { const k 
 // Votos válidos de una encuesta: solo perfiles actuales, un voto por persona y sin opciones quitadas. Si el original no votó, vale el del repetido.
 function pollVotes(p) {
   const hid = p.hidden || [], raw = S.votes[p.id] || {}, d = dupOf(), ids = new Set(members().map(m => m.id)), v = {};
-  Object.entries(raw).forEach(([id, x]) => { if (!ids.has(id) || hid.includes(x)) return; const k = d[id] || id; if (v[k] == null || k === id) v[k] = x; });
+  Object.entries(raw).forEach(([id, x]) => { if (!ids.has(id) || hid.includes(x) || (p.adultsOnly && mem(id).kind === 'kid')) return; const k = d[id] || id; if (v[k] == null || k === id) v[k] = x; });
   return v;
 }
 const mem = id => members().find(m => m.id === id) || { id, name: id === 'coco' ? 'Coco AI' : '¿?', avatar: id === 'coco' ? '🥥' : '👤', fam: '' };
@@ -320,7 +323,7 @@ function badgesOf(id) {
   const water = ['c1', 'c7'].filter(c => S.challenges[c] === id).length;
   return {
     b1: water >= 2, b2: S.photos.filter(p => p.by === id).length >= 10, b3: !!S.missionDone[id],
-    b4: bingoLines(S.bingo[id] || []) > 0, b5: m.fam && famPaid(m.fam), b6: window.POLLS.every(p => p.closed || voteOf(p, id) != null),
+    b4: bingoLines(S.bingo[id] || []) > 0, b5: m.fam && famPaid(m.fam), b6: window.POLLS.every(p => !canVote(p, id) || voteOf(p, id) != null),
   };
 }
 
@@ -448,7 +451,7 @@ function welcome() {
 // Próximo paso mientras no esté reservada la villa: votarla YA (el pago es en junio).
 function villaStep() {
   const p = window.POLLS[0], v = pollVotes(p), hid = p.hidden || [];
-  const voters = Object.keys(v).length, total = members().length - Object.keys(dupOf()).length;
+  const voters = Object.keys(v).length, total = pollElectorate(p), kid = !canVote(p, S.me);
   const mine = v[dupOf()[S.me] || S.me];
   const counts = p.options.map((o, i) => hid.includes(i) ? -1 : Object.values(v).filter(x => x === i).length);
   const max = Math.max(...counts), tops = counts.map((c, i) => c === max && c > 0 ? i : -1).filter(i => i >= 0);
@@ -456,11 +459,11 @@ function villaStep() {
   return `<div class="sec-title"><h2>Próximo paso</h2></div>
   <div class="card next villa-step">
     <div class="label">🏡 Toca elegir la villa ya</div>
-    <h3>${mine != null ? `Has votado ${esc(p.options[mine].split(' ·')[0])} ✅` : '¿En qué villa de Las Terrenas nos quedamos?'}</h3>
+    <h3>${kid ? 'Los mayores están eligiendo la villa 🏡' : mine != null ? `Has votado ${esc(p.options[mine].split(' ·')[0])} ✅` : '¿En qué villa de Las Terrenas nos quedamos?'}</h3>
     <p class="vs-lead">${lead}</p>
     <div class="bar"><i style="width:${total ? Math.round(voters / total * 100) : 0}%"></i></div>
-    <div class="tiny vs-count">${voters} de ${total} ya han votado${voters < total ? ' · las buenas villas vuelan en agosto' : ' · ¡todo el mundo ha votado! 🎉'}</div>
-    <button class="btn vs-cta" data-a="go" data-r="trip" data-sub="stays">${mine != null ? 'Ver villas y votos' : 'Ver las villas y votar'} →</button>
+    <div class="tiny vs-count">${voters} de ${total} adultos ya han votado${voters < total ? ' · las buenas villas vuelan en agosto' : ' · ¡todo el mundo ha votado! 🎉'}</div>
+    <button class="btn vs-cta" data-a="go" data-r="trip" data-sub="stays">${kid ? 'Ver las villas' : mine != null ? 'Ver villas y votos' : 'Ver las villas y votar'} →</button>
     <div class="vs-joke">💸 <b>Tranquilidad:</b> no se paga nada hasta junio. Votar es gratis; la cartera puede seguir en la hamaca con un mojito hasta entonces 🍹😴</div>
     <div class="big-emoji">🏡</div>
   </div>`;
@@ -471,7 +474,7 @@ function home() {
   const n = nextActivity();
   const pending = window.MILESTONES.find(p => fams().some(f => !S.paid[p.id]?.[f.id]));
   const villaPending = !fams().every(f => S.paid.pay2?.[f.id]);
-  const openPoll = window.POLLS.find(p => !p.closed && voteOf(p, S.me) == null && !(villaPending && p.id === 'p1'));
+  const openPoll = window.POLLS.find(p => canVote(p, S.me) && voteOf(p, S.me) == null && !(villaPending && p.id === 'p1'));
   const word = window.LEXICON[Math.floor(Date.now() / 864e5) % window.LEXICON.length];
   const quick = [
     ['trip', '🗓️', 'Planes', '#A7F0E4'], ['explore', '🗺️', 'Mapa', '#7FDBFF'], ['wallet', '💸', 'Gastos', '#FFE7A8'], ['ai', '🥥', 'Coco AI', '#FFD1E1'],
@@ -613,11 +616,12 @@ function pollCard(p) {
   const hid = p.hidden || [];
   const v = pollVotes(p);
   const total = Object.keys(v).length;
-  const mine = v[dupOf()[S.me] || S.me];
-  return `<div class="card"><b>${p.emoji} ${esc(p.q)}</b><div class="tiny">${total} de ${members().length - Object.keys(dupOf()).length} han votado</div>
+  const mine = v[dupOf()[S.me] || S.me], can = canVote(p, S.me), show = mine != null || !can;
+  return `<div class="card"><b>${p.emoji} ${esc(p.q)}</b><div class="tiny">${total} de ${pollElectorate(p)} ${p.adultsOnly ? 'adultos ' : ''}han votado${p.adultsOnly ? ' · solo votan los mayores' : ''}</div>
+    ${!can ? '<div class="tiny kid-note">🧒 Esta la deciden los adultos. ¡Tú ve pensando en qué piscina te tiras primero! 🏊</div>' : ''}
     ${p.options.map((o, i) => { if (hid.includes(i)) return ''; const c = Object.values(v).filter(x => x === i).length; const pct = total ? Math.round(c / total * 100) : 0;
       const link = p.id === 'p1' && window.VILLAS[i]?.url;
-      return `<div class="poll-row"><button class="poll-opt ${mine === i ? 'mine' : ''}" data-a="vote" data-p="${pi}" data-i="${i}"><i style="width:${mine != null ? pct : 0}%"></i><span>${esc(o)}</span>${mine != null ? `<b>${pct}%</b>` : ''}</button>${link ? `<a class="airbnb-mini" href="${esc(link)}" target="_blank" rel="noopener" aria-label="Ver en Airbnb">Airbnb ↗</a>` : ''}</div>${c ? `<div class="tiny voters">${Object.keys(v).filter(id => v[id] === i).map(id => `${mem(id).avatar} ${esc(mem(id).name)}`).join(' · ')}</div>` : ''}`; }).join('')}</div>`;
+      return `<div class="poll-row"><button class="poll-opt ${mine === i ? 'mine' : ''}" ${can ? `data-a="vote" data-p="${pi}" data-i="${i}"` : 'disabled'}><i style="width:${show ? pct : 0}%"></i><span>${esc(o)}</span>${show ? `<b>${pct}%</b>` : ''}</button>${link ? `<a class="airbnb-mini" href="${esc(link)}" target="_blank" rel="noopener" aria-label="Ver en Airbnb">Airbnb ↗</a>` : ''}</div>${c ? `<div class="tiny voters">${Object.keys(v).filter(id => v[id] === i).map(id => `${mem(id).avatar} ${esc(mem(id).name)}`).join(' · ')}</div>` : ''}`; }).join('')}</div>`;
 }
 
 // ---------- EXPLORE ----------
@@ -1219,7 +1223,7 @@ const A = {
     save(); render();
   },
   vote: d => {
-    const p = window.POLLS[+d.p]; const v = S.votes[p.id] = S.votes[p.id] || {};
+    const p = window.POLLS[+d.p]; if (!canVote(p, S.me)) return toast('🧒 Esta votación es solo para adultos'); const v = S.votes[p.id] = S.votes[p.id] || {};
     v[dupOf()[S.me] || S.me] = +d.i; award(S.me, 15, 'voto registrado', 'vote-' + p.id + S.me); save(); render();
   },
   doc: d => { const x = window.DOCS_CHECKLIST[+d.i]; const m = S.docs[S.me] = S.docs[S.me] || {}; m[x.id] = !m[x.id]; if (window.DOCS_CHECKLIST.every(k => m[k.id])) { award(S.me, 50, 'papeles listos', 'docs-' + S.me); confetti(); } save(); render(); },
